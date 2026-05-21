@@ -20,6 +20,7 @@ import streamlit as st
 REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT / "src"))
 
+from sco2_cycle import CycleParams, build_states, cycle_summary_table, plot_ts_diagram  # noqa: E402
 from sco2_mixture_validation import calc_mixture_properties  # noqa: E402
 from sco2_property_explorer import plot_cp_with_pseudocritical  # noqa: E402
 
@@ -29,7 +30,9 @@ st.set_page_config(
 st.title("sCO₂ Pseudo-Critical Line & Mixture Property Diagnostics")
 st.markdown("For advanced nuclear reactor power cycle design (TMSR / HTGR)")
 
-tab1, tab2 = st.tabs(["Pseudo-Critical Line", "Impurity Mixture Analysis"])
+tab1, tab2, tab3 = st.tabs(
+    ["Pseudo-Critical Line", "Impurity Mixture Analysis", "Recompression Cycle T-s"]
+)
 
 with tab1:
     col1, col2 = st.columns([1, 3])
@@ -79,6 +82,36 @@ with tab2:
                 delta=f"{result.cp_delta_pct:+.2f}%",
             )
             st.caption(f"Phase: {result.phase}")
+
+with tab3:
+    st.markdown(
+        "Idealised six-state recompression cycle. Adjust the high/low pressures "
+        "and turbine inlet temperature, then read off the entropy at each state."
+    )
+    col_p, col_t = st.columns(2)
+    with col_p:
+        P_low_MPa = st.slider("Low-pressure side (MPa)", 7.5, 10.0, 8.0, step=0.1)
+        P_high_MPa = st.slider("High-pressure side (MPa)", 15.0, 30.0, 25.0, step=0.5)
+    with col_t:
+        T_turb_in_C = st.slider("Turbine inlet T (°C)", 400, 750, 550)
+        T_turb_out_C = st.slider("Turbine outlet T (°C)", 300, 700, 430)
+
+    params = CycleParams(
+        P_low_Pa=P_low_MPa * 1e6,
+        P_high_Pa=P_high_MPa * 1e6,
+        T_turbine_in_K=T_turb_in_C + 273.15,
+        T_turbine_out_K=T_turb_out_C + 273.15,
+    )
+    states = build_states(params)
+    fig_ts = plot_ts_diagram(states, params, output_path=None)
+    st.pyplot(fig_ts)
+
+    st.markdown("**State point summary:**")
+    st.table(cycle_summary_table(states))
+    st.caption(
+        "States 1-6 are illustrative — Phase 3 Modelica produces converged "
+        "values from a full solver (Cycles/RecompressionCycle.mo)."
+    )
 
 st.markdown("---")
 st.caption("Powered by CoolProp · Open Source · Apache-2.0 (code) / CC BY-SA 4.0 (docs)")
