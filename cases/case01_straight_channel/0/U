@@ -1,0 +1,36 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| Initial / boundary conditions for U.                                        |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volVectorField;
+    location    "0";
+    object      U;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 1 -1 0 0 0 0];
+
+internalField   uniform (1 0 0);   // axial seed velocity (m/s)
+
+boundaryField
+{
+    inlet
+    {
+        type            flowRateInletVelocity;
+        massFlowRate    constant 0.0001;   // kg/s — adjust per target Re
+        rho             rho;
+    }
+    outlet
+    {
+        type            zeroGradient;
+    }
+    wall
+    {
+        type            noSlip;
+    }
+}
+
+// ************************************************************************* //

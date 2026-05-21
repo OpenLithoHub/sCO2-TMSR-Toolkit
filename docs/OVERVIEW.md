@@ -18,7 +18,7 @@
 
 ## Quick Navigation
 
-- **First visit** → read the "Sober corrections" and milestone timeline in [00_strategy.md](00_strategy.md)
+- **First visit** → read the "Sober corrections", "Data Black Holes — Survival Strategy", and milestone timeline in [00_strategy.md](00_strategy.md)
 - **Want to start coding now** → jump to "Minimum viable starting point" in [01_phase1_properties.md](01_phase1_properties.md)
 - **Looking for code structure** → every phase document contains a complete repo directory tree and runnable code snippets
 

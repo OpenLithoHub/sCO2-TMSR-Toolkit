@@ -1,0 +1,16 @@
+#!/bin/sh
+# Allrun for case02_zigzag_channel
+# Reference: docs/02_phase2_cfd_rom.md § 2.4 (extended for zigzag geometry)
+set -e
+cd "${0%/*}" || exit 1
+
+if [ ! -f constant/triSurface/zigzag_channel.stl ]; then
+    echo "ERROR: STL geometry missing. See README — pull from Zenodo first."
+    exit 2
+fi
+
+runApplication blockMesh
+runApplication snappyHexMesh -overwrite
+runApplication checkMesh
+runApplication buoyantPimpleFoam
+echo "case02_zigzag_channel: done."

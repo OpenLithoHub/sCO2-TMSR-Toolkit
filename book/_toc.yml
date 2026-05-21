@@ -1,0 +1,7 @@
+format: jb-book
+root: intro
+chapters:
+  - file: 01_pseudocritical
+  - file: 02_mixture_effects
+  - file: 03_ts_diagram
+  - file: 04_snl_validation

@@ -113,3 +113,82 @@ def test_lut_export_small_grid(tmp_path):
     assert (tmp_path / "lut_smoke.csv").exists()
     assert (tmp_path / "lut_smoke_openfoam.dat").exists()
     assert {"T", "P", "rho", "Cp", "mu", "k", "h"}.issubset(df.columns)
+
+
+def test_lut_density_matches_coolprop(tmp_path):
+    """Every LUT row must equal a fresh CoolProp PropsSI call (no drift)."""
+    from tools.export_lut import export_sco2_lut
+
+    prefix = tmp_path / "lut_consistency"
+    df = export_sco2_lut(
+        T_min=320.0,
+        T_max=420.0,
+        P_min=8.0e6,
+        P_max=20.0e6,
+        n_T=5,
+        n_P=4,
+        output_prefix=str(prefix),
+    )
+    for row in df.itertuples(index=False):
+        rho_ref = CP.PropsSI("D", "T", row.T, "P", row.P, "CO2")
+        assert abs(row.rho - rho_ref) / rho_ref < 1e-9, (
+            f"LUT row drifted from CoolProp at T={row.T}, P={row.P}"
+        )
+
+
+def test_lut_monotonic_density_in_pressure():
+    """Above the pseudo-critical T, density rises monotonically with P."""
+    # 600 K is well above pseudo-critical for any P in 8-20 MPa
+    rhos = [CP.PropsSI("D", "T", 600.0, "P", P, "CO2") for P in (8e6, 12e6, 16e6, 20e6)]
+    assert rhos == sorted(rhos), f"Density must increase with P at fixed T: {rhos}"
+
+
+def test_pure_co2_returns_valid_result():
+    """x_he=0 must return a valid result with rho_pure==rho_mix."""
+    from sco2_mixture_validation import calc_mixture_properties
+
+    result = calc_mixture_properties(T=350.0, P=15.0e6, x_he=0.0, verbose=False)
+    assert result is not None, "Pure CO2 at supercritical conditions must succeed"
+    # x_he=0 collapses to pure CO2 — densities should match within numerical noise
+    assert abs(result.rho_pure - result.rho_mix) / result.rho_pure < 1e-3
+
+
+def test_helium_impurity_lowers_density():
+    """At supercritical conditions adding light He must reduce mixture density."""
+    from sco2_mixture_validation import calc_mixture_properties
+
+    # 350 K, 15 MPa is firmly supercritical — outside any phase envelope
+    pure = calc_mixture_properties(T=350.0, P=15.0e6, x_he=0.0, verbose=False)
+    mix = calc_mixture_properties(T=350.0, P=15.0e6, x_he=0.03, verbose=False)
+    if pure is None or mix is None:
+        pytest.skip("Mixture solver could not evaluate one of the points")
+    assert mix.rho_mix < pure.rho_mix, (
+        f"He impurity should lower density: pure={pure.rho_mix:.2f}, "
+        f"mix={mix.rho_mix:.2f}"
+    )
+
+
+def test_property_explorer_returns_figure():
+    """plot_cp_with_pseudocritical must return a matplotlib Figure object."""
+    from sco2_property_explorer import plot_cp_with_pseudocritical
+
+    fig = plot_cp_with_pseudocritical(
+        T_range=(305.0, 340.0),
+        P_range=(8e6, 12e6),
+        grid=10,
+        output_path=None,
+    )
+    assert fig is not None
+    # Figure must contain at least one axes with the expected x-label
+    ax = fig.axes[0]
+    assert "Temperature" in ax.get_xlabel()
+
+
+def test_pseudocritical_within_engineering_window():
+    """At 8 MPa the pseudo-critical T should be 305-320 K (literature)."""
+    from sco2_property_explorer import find_pseudocritical_temp
+
+    T_pc = find_pseudocritical_temp(8.0e6)
+    assert 305.0 < T_pc < 320.0, (
+        f"Pseudo-critical T at 8 MPa should be 305-320 K, got {T_pc:.2f} K"
+    )

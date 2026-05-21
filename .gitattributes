@@ -1,0 +1,27 @@
+# Git LFS configuration — docs/02_phase2_cfd_rom.md § 2.5.1
+#
+# Track only "benchmark results" — large but rarely changing.
+# Anything > 50 MB should still go to Zenodo, not LFS (free 1 GB / month quota).
+
+validation/benchmark_fields/*.vtu     filter=lfs diff=lfs merge=lfs -text
+validation/benchmark_fields/*.vtk     filter=lfs diff=lfs merge=lfs -text
+validation/benchmark_fields/*.tar.gz  filter=lfs diff=lfs merge=lfs -text
+validation/benchmark_fields/*.zip     filter=lfs diff=lfs merge=lfs -text
+
+# STL geometries used by snappyHexMesh — typically 1-20 MB each.
+cases/*/constant/triSurface/*.stl     filter=lfs diff=lfs merge=lfs -text
+
+# ROM artefacts that ship with releases (tracked in repo so users can run
+# the FMU build without retraining).
+rom/exported/pche_rom.onnx            filter=lfs diff=lfs merge=lfs -text
+
+# Notebook outputs we deliberately commit — usually we strip them, but the
+# Jupyter Book published artifacts may contain large embedded figures.
+book/_build/html/_images/**           filter=lfs diff=lfs merge=lfs -text
+
+# Line-ending normalisation (cross-platform safety)
+* text=auto eol=lf
+
+# Bash scripts must stay LF
+*.sh                                  text eol=lf
+Allrun                                text eol=lf

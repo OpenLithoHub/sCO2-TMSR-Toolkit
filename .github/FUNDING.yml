@@ -1,0 +1,10 @@
+# GitHub Sponsors / funding configuration.
+# Reference: docs/00_strategy.md § Step 3 — GitHub Sponsors (~month 6).
+#
+# Replace the placeholder usernames once the corresponding accounts exist.
+# Until then this file is a *signal of intent* rather than an active funding URL.
+
+github: [OpenLithoHub]
+# ko_fi: openlithohub
+# open_collective: sco2-tmsr-toolkit
+# custom: ['https://example.com/sponsor']

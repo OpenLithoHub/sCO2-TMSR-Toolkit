@@ -1,0 +1,63 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| Reference: docs/02_phase2_cfd_rom.md § 2.4                                  |
+| 2 mm equivalent diameter, 50 mm length straight channel                     |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      blockMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+scale 0.001;   // mm → m
+
+vertices
+(
+    (0    0    0)      // 0
+    (50   0    0)      // 1
+    (50   2    0)      // 2
+    (0    2    0)      // 3
+    (0    0    2)      // 4
+    (50   0    2)      // 5
+    (50   2    2)      // 6
+    (0    2    2)      // 7
+);
+
+blocks
+(
+    // Coarse placeholder mesh — refine before any production run.
+    // Recommended: 200 axial cells, 30 transverse, with wall-clustered
+    // grading to resolve y+ < 1 for low-Re k-omega SST.
+    hex (0 1 2 3 4 5 6 7) (200 30 30) simpleGrading (1 1 1)
+);
+
+boundary
+(
+    inlet
+    {
+        type patch;
+        faces ((0 4 7 3));
+    }
+    outlet
+    {
+        type patch;
+        faces ((1 2 6 5));
+    }
+    wall
+    {
+        type wall;
+        faces
+        (
+            (0 1 5 4)
+            (3 7 6 2)
+            (0 3 2 1)
+            (4 5 6 7)
+        );
+    }
+);
+
+mergePatchPairs ();
+
+// ************************************************************************* //

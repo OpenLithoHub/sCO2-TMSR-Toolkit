@@ -95,11 +95,15 @@ sCO2-TMSR-Toolkit/
 │   └── exported/
 │
 ├── modelica/                    # Phase 3: OpenModelica component library
-│   └── AdvancedReactor-sCO2-Library/
+│   └── AdvancedReactor_sCO2_Library/
 │       ├── package.mo
-│       ├── Components/
-│       ├── Cycles/
-│       └── Tests/
+│       ├── Media/                  # sCO2 medium (placeholder, full Medium coupling pending)
+│       ├── Components/             # HeatExchangers / Turbomachinery / Reactor / Valves
+│       ├── Cycles/                 # SimpleRecuperation / RecompressionCycle / TMSR_sCO2_Full
+│       ├── Examples/               # DesignPointAnalysis / LoadFollowing / StartupSequence
+│       ├── Tests/                  # ValidationTests (compile smoke test)
+│       ├── ExternalROM/            # FMU drop-zone for Phase 2 ROM
+│       └── docs/                   # UserGuide.md + ComponentReference.md
 │
 ├── validation/                  # Experimental benchmark data
 │   └── experimental_data/
@@ -143,10 +147,50 @@ The `docs/` directory contains the full engineering implementation manual, split
 
 | Phase | Timeline | Status |
 |-------|----------|--------|
-| Phase 0 — knowledge preparation | Weeks 0–6 | 🔲 |
-| Phase 1 — sCO₂ property tools | Months 1–3 | 🔲 |
-| Phase 2 — PCHE CFD benchmarks + ROM | Months 4–8 | 🔲 |
-| Phase 3 — OpenModelica library | Months 8–18 | 🔲 |
+| Phase 0 — knowledge preparation | Weeks 0–6 | ✅ scaffolding ready |
+| Phase 1 — sCO₂ property tools | Months 1–3 | ✅ tools + tests + Streamlit + Jupyter Book |
+| Phase 2 — PCHE CFD benchmarks + ROM | Months 4–8 | 🟡 scaffolded (cases/, rom/, postProcessing/, Git LFS); CFD runs blocked on compute |
+| Phase 3 — OpenModelica library | Months 8–18 | 🟡 library skeleton complete (PCHE + ASME, tritium, point-kinetics, cycles, examples, docs); compile-check blocked on OpenModelica install |
+
+### Component status — `modelica/AdvancedReactor_sCO2_Library/`
+
+| Component | Status | Notes |
+|-----------|--------|-------|
+| `Media/sCO2.mo` | placeholder `BaseProperties` | full CoolProp coupling at month-12 milestone |
+| `Components/HeatExchangers/IntermediateHeatExchanger.mo` | ✅ NTU-effectiveness | design-point Cp values |
+| `Components/HeatExchangers/PCHE.mo` | ✅ NTU + ROM switch + ASME warning | § 3.3 + § 3.6 |
+| `Components/HeatExchangers/TritiumPermeationLayer.mo` | ✅ Sieverts + Arrhenius (steady) | § 3.5 |
+| `Components/Turbomachinery/{Compressor, ReCompressor, Turbine}.mo` | ✅ isentropic-efficiency | |
+| `Components/Reactor/MoltenSaltReactor.mo` | ✅ lumped thermal-hydraulic | |
+| `Components/Reactor/ReactorPowerControl.mo` | ✅ PI controller | |
+| `Components/Reactor/OnlineFuellingTransient.mo` | ✅ point-kinetics, 6-group | § 3.7; default β_i / λ_i are U-235 thermal — replace with Th-U |
+| `Components/Valves/{ThrottleValve, BypassValve}.mo` | ✅ isenthalpic | |
+| `Cycles/{SimpleRecuperation, RecompressionCycle, TMSR_sCO2_Full}.mo` | ✅ skeleton | |
+| `Examples/{DesignPointAnalysis, LoadFollowing, StartupSequence}.mo` | ✅ skeleton | |
+| `Tests/ValidationTests.mo` | ✅ instantiates every published component | OpenModelica compile blocked locally |
+| `ExternalROM/PCHE_ROM_FMU.fmu` | 🚫 not built | requires CFD dataset + `pythonfmu build` |
+
+### External / blocked items
+
+These items are part of the 24-month plan but cannot be completed in a single
+implementation pass — they require external compute, hardware, or third-party
+service accounts:
+
+- **Zenodo DOI** — manual deposit per release (`docs/00 § Sustainability`)
+- **JOSS submission** — after the v1.0 milestone with quantitative validation
+- **OSTI Sandia compressor / STEP Phase 1 benchmark data** — must be transcribed
+  from public DOE reports into `validation/experimental_data/*.csv`. Pipelines
+  in place; tests skip cleanly when CSV rows are absent.
+- **Streamlit Cloud deployment** — push `app/streamlit_app.py` after a project
+  is created on share.streamlit.io
+- **OpenFOAM CFD runs** for `cases/case01..03` — needs an OpenFOAM 11 environment
+- **OpenModelica compile-check** — runs in CI (Docker image), not in this dev env
+
+### Test status
+
+```
+tests/ — 10 passed, 2 skipped (skips: SNL/STEP CSVs not yet populated)
+```
 
 Full milestone timeline with month-by-month checkpoints: [docs/00_strategy.md](docs/00_strategy.md#milestone-timeline)
 

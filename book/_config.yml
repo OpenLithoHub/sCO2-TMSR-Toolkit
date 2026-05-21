@@ -1,0 +1,41 @@
+title: "sCO₂-TMSR-Toolkit — Living Documentation"
+author: OpenLithoHub Contributors
+copyright: "2025"
+logo: ""
+
+# Force re-execution of notebooks on each build, except notebooks loading public CSVs.
+execute:
+  execute_notebooks: cache
+  timeout: 300
+  allow_errors: false
+
+# Bibliography
+bibtex_bibfiles:
+  - references.bib
+
+# Information about where the book exists on the web
+repository:
+  url: https://github.com/OpenLithoHub/sCO2-TMSR-Toolkit
+  path_to_book: book
+  branch: main
+
+# Add launch buttons (Binder + Colab + Thebe live execution)
+launch_buttons:
+  binderhub_url: "https://mybinder.org"
+  colab_url: "https://colab.research.google.com"
+  thebe: true
+
+# Add GitHub buttons to your book
+html:
+  use_issues_button: true
+  use_repository_button: true
+  use_edit_page_button: true
+  favicon: ""
+
+# Parser config — needed for citations and dollar-math
+parse:
+  myst_enable_extensions:
+    - amsmath
+    - dollarmath
+    - colon_fence
+    - linkify

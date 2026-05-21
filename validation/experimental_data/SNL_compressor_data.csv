@@ -1,0 +1,20 @@
+# Sandia National Laboratories sCO2 compressor test loop — placeholder header.
+#
+# STATUS: NOT VERIFIED. The rows below are illustrative placeholders so the
+# pipeline (pytest, validate_against_sandia.py) can be exercised end-to-end.
+# Every row must be replaced with values transcribed from the original
+# Wright et al. SNL reports (OSTI public) before this file can be cited as a
+# benchmark source. See data_sources.md for transcription rules.
+#
+# Columns:
+#   T_inlet_K            : Compressor inlet temperature (K)
+#   P_inlet_Pa           : Compressor inlet pressure (Pa)
+#   T_outlet_K           : Compressor outlet temperature (K)
+#   P_outlet_Pa          : Compressor outlet pressure (Pa)
+#   rho_inlet_measured   : Measured inlet density (kg/m^3) — leave blank if not reported
+#   efficiency_measured  : Reported isentropic efficiency (0-1) — leave blank if not reported
+#   source_ref           : Citation key matching docs/00_strategy.md references
+T_inlet_K,P_inlet_Pa,T_outlet_K,P_outlet_Pa,rho_inlet_measured,efficiency_measured,source_ref
+# 305.4,7.69e6,,,632.0,,Wright2010_SAND_PLACEHOLDER
+# 351.2,2.00e7,,,745.5,,Wright2010_SAND_PLACEHOLDER
+# 773.15,2.00e7,,,142.3,,Wright2010_SAND_PLACEHOLDER

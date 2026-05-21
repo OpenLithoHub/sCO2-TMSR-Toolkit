@@ -22,6 +22,61 @@ Acknowledge these realities upfront:
 
 ---
 
+## Data Black Holes — Survival Strategy
+
+> **Mindset shift (read this first):** This project ships a **framework and pipeline**, not **ground-truth data**.
+> The most decision-relevant numbers in advanced reactors and sCO₂ thermal hydraulics — commercial compressor maps, real-plant corrosion rates, Heatric's actual PCHE etching geometry — are commercial secrets or national-lab restricted. Waiting to collect "complete" data before shipping guarantees the project never ships.
+> Industrial users typically have the data; what they lack is a system-level framework that can ingest it. Build the framework with documented placeholders, expose clean ingestion interfaces, and the data will follow from the institutions that hold it.
+
+Four predictable "data black holes" will be hit during execution. Each has a known escape strategy.
+
+### Black Hole 1 — sCO₂ compressor / turbine performance maps (Phase 3)
+
+- **Where it bites:** Modelica turbomachinery components require multidimensional flow-pressure-efficiency-speed maps; complete maps from Barber-Nichols, Dresser-Rand, etc. are not public.
+- **Escape — non-dimensional scaling + BYOD (Bring Your Own Data) interface:**
+  1. Default map: use Sandia SNL public single-point or coarse curves as a placeholder.
+  2. Engineering layer: implement a generic centrifugal scaling law (flow coefficient vs. head coefficient) so the placeholder is at least dimensionally credible across operating points.
+  3. Document loudly: *"Default map is concept-validation only. Component exposes a standard CSV/table input — industrial users plug in their proprietary map."* The win is the ingestion interface, not the default numbers.
+
+### Black Hole 2 — Real PCHE micro-channel geometry & high-fidelity heat-transfer data (Phase 2)
+
+- **Where it bites:** Optimal airfoil-fin pitch and angle of attack are vendor-confidential; experimental Nu data at 700 °C / 20 MPa is sparse and contradictory across papers.
+- **Escape — academic stand-ins + the pipeline IS the contribution:**
+  1. Drop the vendor-comparison goal. Adopt explicitly idealized geometries from highly-cited PCHE papers (e.g., Ngo et al., Kim et al.) and document the source.
+  2. Ship the **end-to-end automated pipeline**: geometry generation → mesh → CFD run → Nu correlation extraction. Even with academic geometries, an open, reproducible pipeline is the durable contribution. Users with confidential geometry can swap inputs and re-run.
+
+### Black Hole 3 — Mixture properties at extreme conditions (Phase 1)
+
+- **Where it bites:** For sCO₂ + He or sCO₂ + H₂O at high pressure or near the phase envelope, CoolProp's Span-Wagner / HEOS backend may fail to converge or raise exceptions. There is no experimental dataset to patch the EOS with.
+- **Escape — turn the failure boundary into a deliverable:**
+  1. Do not treat convergence failures as code defects to suppress. Instead, sweep T-P space and produce a **failure-envelope contour plot** marking where current open property libraries succeed vs. crash.
+  2. Publish the map with the call-out: *"Inside this region the current open property stack is unusable — experimental thermodynamics groups, please fill in."* Mapping the boundary of human knowledge is itself a high-value contribution.
+
+### Black Hole 4 — Tritium permeation material constants (Phase 3, § 3.5)
+
+- **Where it bites:** Reported tritium permeability for Inconel 617 (Φ₀, Eₐ) varies by 10×–100× across papers because surface oxide layers dominate the result. There is no single defensible value.
+- **Escape — parameterize the uncertainty, do not hide it:**
+  1. Never hard-code Φ₀ / Eₐ as a single constant. Expose `Worst_Case` (no oxide barrier, literature maximum) and `Best_Case` (intact oxide, literature minimum) presets, plus a free `Custom` channel.
+  2. Reframe the deliverable: the model does not predict an absolute tritium release number (no one can). It bounds the answer for safety analysts: *"under the worst documented case, accumulation is X; under the best, Y."* Bracketing is the honest output.
+
+### Standard handling protocol when data is missing
+
+Apply this loop every time a black hole is hit, in any phase:
+
+1. **Mock it** — replace the missing value with a constant or linear fit so the program runs end-to-end. Never let a data gap block the rest of the stack.
+2. **Flag it** — emit a visible runtime log line, e.g. `[WARNING] Placeholder data in use — see docs/known_gaps.md#<anchor>`.
+3. **Document it** — record the gap, the placeholder used, and the upstream literature in a single living chapter (Jupyter Book: *Known Data Gaps & Open Questions*).
+4. **Publish it** — release the project *with* the documented gaps. A transparent gap is an invitation to collaborators who hold the closed data; a hidden gap is a credibility loss waiting to happen.
+
+### What "success" actually means here
+
+If success is defined as *"reproduce a commercial sCO₂ reactor's full performance numbers"*, the data wall guarantees failure.
+The achievable definition of success: **a robust, modular, well-engineered (CI, tests, standardized interfaces) digital infrastructure** that institutions with closed data can run on their own inputs. As long as the skeleton — physics equations, conservation laws, solver logic, software architecture — is correct, the flesh (high-quality experimental data) arrives later, contributed by the labs and groups that own it.
+
+> Cross-references: turbomachinery BYOD interface — § 3.x components; PCHE pipeline — § 2.6; failure-envelope sweeps — § 1.6 / Phase 1 CI; tritium parameter presets — § 3.5.
+
+---
+
 ## Version History
 
 ### v1.4 (current)
@@ -117,6 +172,7 @@ Month
 
 | Risk | Probability | Mitigation |
 |------|-------------|-----------|
+| Key reference data inaccessible (compressor maps, vendor PCHE geometry, mixture EOS at extremes, tritium constants) | High | See *Data Black Holes — Survival Strategy*: ship framework + BYOD interfaces, publish documented placeholders and failure envelopes rather than blocking on data |
 | CoolProp PR not merged long-term | Medium | Publish as independent PyPI package — still valuable |
 | OpenFOAM case results deviate significantly from literature | High | The deviation itself is a finding; document it, discuss publicly |
 | OpenFOAM data bursts the repository | High | Strictly apply § 2.5 `.gitignore` + LFS + Zenodo strategy |

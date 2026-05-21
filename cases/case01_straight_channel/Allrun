@@ -1,0 +1,11 @@
+#!/bin/sh
+# Allrun for case01_straight_channel
+# Reference: docs/02_phase2_cfd_rom.md § 2.4
+set -e
+cd "${0%/*}" || exit 1
+
+# Source OpenFOAM environment if needed: . $WM_PROJECT_DIR/etc/bashrc
+runApplication blockMesh
+runApplication checkMesh
+runApplication buoyantPimpleFoam
+echo "case01_straight_channel: done. Run postProcess for wallHeatFlux next."

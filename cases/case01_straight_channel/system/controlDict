@@ -1,0 +1,75 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: PCHE straight channel benchmark       |
+|  \\    /   O peration     | Reference: docs/02_phase2_cfd_rom.md § 2.4      |
+|   \\  /    A nd           | Status: SKELETON — replace placeholder values   |
+|    \\/     M anipulation  | with values from the converged run             |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+application     buoyantPimpleFoam;
+
+startFrom       startTime;
+startTime       0;
+stopAt          endTime;
+endTime         5.0;        // s — adjust per Re; raise for low-Re convergence
+
+deltaT          1e-4;
+adjustTimeStep  yes;
+maxCo           0.5;
+maxDeltaT       1e-3;
+
+writeControl    adjustableRunTime;
+writeInterval   0.5;        // s
+purgeWrite      0;
+writeFormat     binary;
+writePrecision  8;
+writeCompression off;
+timeFormat      general;
+timePrecision   6;
+runTimeModifiable true;
+
+functions
+{
+    wallHeatFlux
+    {
+        type            wallHeatFlux;
+        libs            ("libfieldFunctionObjects.so");
+        patches         (wall);
+        executeControl  writeTime;
+        writeControl    writeTime;
+    }
+
+    pressureDifference
+    {
+        type            fieldValueDelta;
+        libs            ("libfieldFunctionObjects.so");
+        operation       subtract;
+        region1
+        {
+            type        surfaceFieldValue;
+            regionType  patch;
+            name        inlet;
+            operation   areaAverage;
+            fields      (p);
+        }
+        region2
+        {
+            type        surfaceFieldValue;
+            regionType  patch;
+            name        outlet;
+            operation   areaAverage;
+            fields      (p);
+        }
+        executeControl  writeTime;
+        writeControl    writeTime;
+    }
+}
+// ************************************************************************* //

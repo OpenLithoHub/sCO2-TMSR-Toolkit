@@ -1,0 +1,9 @@
+# DOE STEP demonstration project Phase 1 (~500 °C simple cycle).
+#
+# STATUS: NOT POPULATED. Phase 1 reports are public — values must be
+# transcribed from the released DOE / Southwest Research Institute reports
+# before this file is used in CI assertions. Phase 2 (RCBC, ~715 °C) data is
+# NOT public as of 2026 and must not be added here speculatively.
+#
+# Columns mirror SNL_compressor_data.csv for cross-source comparability.
+T_inlet_K,P_inlet_Pa,T_outlet_K,P_outlet_Pa,rho_inlet_measured,efficiency_measured,source_ref

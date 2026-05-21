@@ -1,0 +1,24 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| Turbulence model — k-omega SST chosen for adverse-pressure-gradient and      |
+| heat-transfer accuracy in PCHE channels (docs/02 § 2.4).                    |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      turbulenceProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+simulationType  RAS;
+
+RAS
+{
+    RASModel        kOmegaSST;
+    turbulence      on;
+    printCoeffs     on;
+}
+
+// ************************************************************************* //
