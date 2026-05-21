@@ -1,0 +1,91 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| LES controlDict for case03 — airfoil-fin PCHE channel.                      |
+| Reference: docs/02_phase2_cfd_rom.md § 2.5.3                                |
+|                                                                             |
+| Hardware caveat: this case must NOT be run on a laptop. The README warns   |
+| ~3 days on 64-core / 128 GB. endTime here is generous; restart from latest |
+| time when chaining cloud Spot interruptions.                               |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+application     buoyantPimpleFoam;
+
+startFrom       latestTime;
+startTime       0;
+stopAt          endTime;
+endTime         30.0;       // s — multiple flow-throughs for LES statistics
+
+deltaT          1e-5;
+adjustTimeStep  yes;
+maxCo           0.3;        // tighter than RAS — LES needs CFL ≤ 0.3
+maxDeltaT       2e-4;
+
+writeControl    adjustableRunTime;
+writeInterval   0.5;
+purgeWrite      4;          // keep last 4 dumps — full LES fields are huge
+writeFormat     binary;
+writePrecision  8;
+writeCompression on;        // gzip — LES dumps balloon fast
+timeFormat      general;
+timePrecision   6;
+runTimeModifiable true;
+
+functions
+{
+    wallHeatFlux
+    {
+        type            wallHeatFlux;
+        libs            ("libfieldFunctionObjects.so");
+        patches         (fin_wall);
+        executeControl  writeTime;
+        writeControl    writeTime;
+    }
+
+    pressureDifference
+    {
+        type            fieldValueDelta;
+        libs            ("libfieldFunctionObjects.so");
+        operation       subtract;
+        region1
+        {
+            type        surfaceFieldValue;
+            regionType  patch;
+            name        inlet;
+            operation   areaAverage;
+            fields      (p);
+        }
+        region2
+        {
+            type        surfaceFieldValue;
+            regionType  patch;
+            name        outlet;
+            operation   areaAverage;
+            fields      (p);
+        }
+        executeControl  writeTime;
+        writeControl    writeTime;
+    }
+
+    fieldAverage
+    {
+        type            fieldAverage;
+        libs            ("libfieldFunctionObjects.so");
+        timeStart       5.0;        // discard first 5 s (transient)
+        executeControl  timeStep;
+        writeControl    writeTime;
+        fields
+        (
+            U  { mean on; prime2Mean on; base time; }
+            p  { mean on; prime2Mean on; base time; }
+            T  { mean on; prime2Mean on; base time; }
+        );
+    }
+}
+// ************************************************************************* //

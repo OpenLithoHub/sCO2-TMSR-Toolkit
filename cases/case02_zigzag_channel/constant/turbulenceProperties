@@ -1,0 +1,25 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| Same k-omega SST RAS as case01. Future work: compare against k-omega SST-LM  |
+| (transition-sensitive) once the zigzag y+ < 1 mesh resolves the bend         |
+| separation bubble.                                                          |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      turbulenceProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+simulationType  RAS;
+
+RAS
+{
+    RASModel        kOmegaSST;
+    turbulence      on;
+    printCoeffs     on;
+}
+
+// ************************************************************************* //

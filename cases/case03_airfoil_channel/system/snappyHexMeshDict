@@ -1,0 +1,102 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| snappyHexMesh: cut airfoil fins out of the background mesh.                 |
+| Requires `constant/triSurface/airfoil_fins.stl` produced by                 |
+| `tools/cad/airfoil_fin.py` (TODO). Refinement (3 4) and 6 surface layers   |
+| are tighter than case02 because LES needs y+ < 1 on the fin surface.       |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      snappyHexMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+castellatedMesh true;
+snap            true;
+addLayers       true;
+
+geometry
+{
+    airfoil_fins.stl
+    {
+        type triSurfaceMesh;
+        name fin_wall;
+    }
+}
+
+castellatedMeshControls
+{
+    maxLocalCells       2000000;
+    maxGlobalCells      8000000;
+    minRefinementCells  10;
+    nCellsBetweenLevels 4;
+    resolveFeatureAngle 30;
+    features            ();
+    refinementSurfaces
+    {
+        fin_wall
+        {
+            level (3 4);
+            patchInfo { type wall; }
+        }
+    }
+    refinementRegions {}
+    locationInMesh   (0 0 0);
+    allowFreeStandingZoneFaces true;
+}
+
+snapControls
+{
+    nSmoothPatch         3;
+    tolerance            2.0;
+    nSolveIter           30;
+    nRelaxIter           5;
+    nFeatureSnapIter     10;
+}
+
+addLayersControls
+{
+    relativeSizes        true;
+    layers
+    {
+        fin_wall { nSurfaceLayers 6; }
+    }
+    expansionRatio       1.15;
+    finalLayerThickness  0.3;
+    minThickness         0.03;
+    nGrow                0;
+    featureAngle         60;
+    nRelaxIter           5;
+    nSmoothSurfaceNormals 1;
+    nSmoothNormals       3;
+    nSmoothThickness     10;
+    maxFaceThicknessRatio 0.5;
+    maxThicknessToMedialRatio 0.3;
+    minMedianAxisAngle   90;
+    nBufferCellsNoExtrude 0;
+    nLayerIter           50;
+}
+
+meshQualityControls
+{
+    maxNonOrtho         60;
+    maxBoundarySkewness 20;
+    maxInternalSkewness 4;
+    maxConcave          80;
+    minVol              1e-13;
+    minTetQuality       1e-15;
+    minArea             -1;
+    minTwist            0.05;
+    minDeterminant      0.001;
+    minFaceWeight       0.05;
+    minVolRatio         0.01;
+    minTriangleTwist    -1;
+    nSmoothScale        4;
+    errorReduction      0.75;
+}
+
+mergeTolerance 1e-6;
+
+// ************************************************************************* //

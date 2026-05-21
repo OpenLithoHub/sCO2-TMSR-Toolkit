@@ -18,9 +18,16 @@
 
 ## Mesh source
 
-Place a `constant/triSurface/zigzag_channel.stl` produced from the geometry
-script under `tools/cad/zigzag.py` (script not yet written — Phase 2 month 5
-deliverable). Until that exists, this case directory is a placeholder.
+Generate `constant/triSurface/zigzag_channel.stl` with the bundled geometry
+script:
+
+```bash
+python -m src.tools.cad.zigzag                  # writes to this case's triSurface/
+```
+
+The script emits ASCII STL of the four channel walls (top, bottom, ±z sides)
+swept along a triangular-wave centreline. See `src/tools/cad/zigzag.py` for
+parameter knobs (length, period, amplitude, channel cross-section).
 
 ## Run
 
@@ -34,6 +41,7 @@ STL is in place.
 
 ## Status
 
-🚧 **Skeleton — STL geometry not committed.** STL will be hosted on Zenodo
-per `docs/02 § 2.5.1` (LFS quota strategy); the case directory will pull it
-via a download script.
+🚧 **Skeleton — STL is regenerable but coarse.** The bundled `zigzag.py`
+emits a plumbing-quality STL good for smoke-testing the snappy + buoyantPimpleFoam
+chain. Production runs should regenerate from the upstream PCHE geometry source
+(or pull a vetted STL from Zenodo per `docs/02 § 2.5.1`).

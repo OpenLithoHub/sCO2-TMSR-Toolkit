@@ -1,0 +1,65 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| LES reference: airfoil-fin PCHE channel.                                    |
+| One staggered row of NACA-like fins inside a rectangular channel; the fin   |
+| body itself is supplied as `constant/triSurface/airfoil_fins.stl`           |
+| produced by `tools/cad/airfoil_fin.py` (TODO).                              |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      blockMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+scale 0.001;   // mm → m
+
+// 30 mm streamwise × 6 mm spanwise × 4 mm wall-normal — bounding box only.
+vertices
+(
+    (-5   -3   -2)     // 0
+    (25   -3   -2)     // 1
+    (25    3   -2)     // 2
+    (-5    3   -2)     // 3
+    (-5   -3    2)     // 4
+    (25   -3    2)     // 5
+    (25    3    2)     // 6
+    (-5    3    2)     // 7
+);
+
+blocks
+(
+    // Background hex block — snappyHexMesh refines/cuts against the fin STL.
+    // LES needs y+ < 1, so we lean denser than case02.
+    hex (0 1 2 3 4 5 6 7) (300 60 40) simpleGrading (1 1 1)
+);
+
+boundary
+(
+    inlet
+    {
+        type patch;
+        faces ((0 4 7 3));
+    }
+    outlet
+    {
+        type patch;
+        faces ((1 2 6 5));
+    }
+    sides
+    {
+        type wall;
+        faces
+        (
+            (0 1 5 4)
+            (3 7 6 2)
+            (0 3 2 1)
+            (4 5 6 7)
+        );
+    }
+);
+
+mergePatchPairs ();
+
+// ************************************************************************* //

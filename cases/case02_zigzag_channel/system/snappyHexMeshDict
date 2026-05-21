@@ -1,0 +1,102 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| snappyHexMesh: cut the zigzag channel out of the background mesh.          |
+| Requires `constant/triSurface/zigzag_channel.stl` produced by              |
+| `src/tools/cad/zigzag.py`. Until that STL exists, snappyHexMesh aborts with|
+| "no surface" — the case Allrun guards against that and skips snappy.       |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      snappyHexMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+castellatedMesh true;
+snap            true;
+addLayers       true;
+
+geometry
+{
+    zigzag_channel.stl
+    {
+        type triSurfaceMesh;
+        name zigzag_wall;
+    }
+}
+
+castellatedMeshControls
+{
+    maxLocalCells       1000000;
+    maxGlobalCells      4000000;
+    minRefinementCells  10;
+    nCellsBetweenLevels 3;
+    resolveFeatureAngle 30;
+    features            ();
+    refinementSurfaces
+    {
+        zigzag_wall
+        {
+            level (2 3);
+            patchInfo { type wall; }
+        }
+    }
+    refinementRegions {}
+    locationInMesh   (0 0 0);
+    allowFreeStandingZoneFaces true;
+}
+
+snapControls
+{
+    nSmoothPatch         3;
+    tolerance            2.0;
+    nSolveIter           30;
+    nRelaxIter           5;
+    nFeatureSnapIter     10;
+}
+
+addLayersControls
+{
+    relativeSizes        true;
+    layers
+    {
+        zigzag_wall { nSurfaceLayers 4; }
+    }
+    expansionRatio       1.2;
+    finalLayerThickness  0.4;
+    minThickness         0.05;
+    nGrow                0;
+    featureAngle         60;
+    nRelaxIter           5;
+    nSmoothSurfaceNormals 1;
+    nSmoothNormals       3;
+    nSmoothThickness     10;
+    maxFaceThicknessRatio 0.5;
+    maxThicknessToMedialRatio 0.3;
+    minMedianAxisAngle   90;
+    nBufferCellsNoExtrude 0;
+    nLayerIter           50;
+}
+
+meshQualityControls
+{
+    maxNonOrtho         65;
+    maxBoundarySkewness 20;
+    maxInternalSkewness 4;
+    maxConcave          80;
+    minVol              1e-13;
+    minTetQuality       1e-15;
+    minArea             -1;
+    minTwist            0.05;
+    minDeterminant      0.001;
+    minFaceWeight       0.05;
+    minVolRatio         0.01;
+    minTriangleTwist    -1;
+    nSmoothScale        4;
+    errorReduction      0.75;
+}
+
+mergeTolerance 1e-6;
+
+// ************************************************************************* //

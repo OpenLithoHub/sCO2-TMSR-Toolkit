@@ -1,0 +1,46 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| Same placeholder caveat as case01/case02: perfectGas + hConst is wrong for  |
+| sCO2 near pseudo-critical. Replace with the LUT produced by                 |
+| `python3 src/tools/export_lut.py --output-prefix sco2_lut` per              |
+| docs/02_phase2_cfd_rom.md § 2.3 Method A before any production run.         |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      thermophysicalProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+thermoType
+{
+    type            heRhoThermo;
+    mixture         pureMixture;
+    transport       const;
+    thermo          hConst;
+    equationOfState perfectGas;     // PLACEHOLDER — replace with sCO2 LUT
+    specie          specie;
+    energy          sensibleEnthalpy;
+}
+
+mixture
+{
+    specie
+    {
+        molWeight   44.01;          // g/mol — CO2
+    }
+    thermodynamics
+    {
+        Cp          5000;
+        Hf          0;
+    }
+    transport
+    {
+        mu          3e-5;
+        Pr          1.0;
+    }
+}
+
+// ************************************************************************* //

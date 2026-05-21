@@ -1,0 +1,30 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| LES turbulence model: WALE.                                                 |
+| WALE handles wall-bounded transition correctly without a damping function — |
+| preferred for sCO2-PCHE LES over basic Smagorinsky (docs/02 § 2.5.3).      |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      turbulenceProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+simulationType  LES;
+
+LES
+{
+    LESModel        WALE;
+    turbulence      on;
+    printCoeffs     on;
+    delta           cubeRootVol;
+    cubeRootVolCoeffs
+    {
+        deltaCoeff      1;
+    }
+}
+
+// ************************************************************************* //

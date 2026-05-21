@@ -1,0 +1,28 @@
+#!/bin/sh
+# Allrun for case03_airfoil_channel
+# Reference: docs/02_phase2_cfd_rom.md § 2.5.3
+#
+# WARNING: LES — do not run on a laptop. ~3 days on 64-core / 128 GB.
+# Recommended: cloud Spot (AWS c6i.4xlarge or GCP equivalent) per docs/02 § 2.5.2.
+set -e
+cd "${0%/*}" || exit 1
+
+if [ ! -f constant/triSurface/airfoil_fins.stl ]; then
+    echo "ERROR: STL geometry missing (constant/triSurface/airfoil_fins.stl)."
+    echo "       Generate with tools/cad/airfoil_fin.py (TODO) or pull from Zenodo."
+    exit 2
+fi
+
+runApplication blockMesh
+runApplication snappyHexMesh -overwrite
+runApplication checkMesh
+
+# Decompose for parallel — adjust system/decomposeParDict for your cluster.
+if [ -f system/decomposeParDict ]; then
+    runApplication decomposePar
+    runParallel buoyantPimpleFoam
+    runApplication reconstructPar
+else
+    runApplication buoyantPimpleFoam
+fi
+echo "case03_airfoil_channel: done."

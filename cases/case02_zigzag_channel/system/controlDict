@@ -1,0 +1,73 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| Inherits from cases/case01_straight_channel/system/controlDict.            |
+| Same buoyantPimpleFoam settings; longer endTime and tighter writeInterval  |
+| because zigzag flow takes more residence-time loops to converge.           |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+application     buoyantPimpleFoam;
+
+startFrom       startTime;
+startTime       0;
+stopAt          endTime;
+endTime         12.0;       // s — longer than case01 (residence-time loops)
+
+deltaT          5e-5;
+adjustTimeStep  yes;
+maxCo           0.4;
+maxDeltaT       5e-4;
+
+writeControl    adjustableRunTime;
+writeInterval   1.0;
+purgeWrite      0;
+writeFormat     binary;
+writePrecision  8;
+writeCompression off;
+timeFormat      general;
+timePrecision   6;
+runTimeModifiable true;
+
+functions
+{
+    wallHeatFlux
+    {
+        type            wallHeatFlux;
+        libs            ("libfieldFunctionObjects.so");
+        patches         (zigzag_wall);
+        executeControl  writeTime;
+        writeControl    writeTime;
+    }
+
+    pressureDifference
+    {
+        type            fieldValueDelta;
+        libs            ("libfieldFunctionObjects.so");
+        operation       subtract;
+        region1
+        {
+            type        surfaceFieldValue;
+            regionType  patch;
+            name        inlet;
+            operation   areaAverage;
+            fields      (p);
+        }
+        region2
+        {
+            type        surfaceFieldValue;
+            regionType  patch;
+            name        outlet;
+            operation   areaAverage;
+            fields      (p);
+        }
+        executeControl  writeTime;
+        writeControl    writeTime;
+    }
+}
+// ************************************************************************* //
