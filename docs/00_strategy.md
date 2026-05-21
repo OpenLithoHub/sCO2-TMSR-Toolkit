@@ -199,7 +199,7 @@ Grey area (handle carefully):
 Acceptance yields a peer-reviewed paper with a DOI indexed by Crossref and Google Scholar.
 
 **Readiness checklist:**
-- Open-source license (MIT / BSD / Apache 2.0)
+- Open-source license (Apache-2.0 for code + CC BY-SA 4.0 for docs — aligned with the OpenLithoHub project family; MIT / BSD are also JOSS-acceptable alternatives)
 - Visible version control on GitHub
 - Automated tests covering core functionality (CI passing badge)
 - Complete `README.md` and install / usage guide

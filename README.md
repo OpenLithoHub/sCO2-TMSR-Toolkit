@@ -9,7 +9,8 @@
 **Open-source full-stack toolkit for supercritical CO₂ Brayton cycles coupled to advanced nuclear reactors (TMSR / HTGR).**
 
 [![Tests](https://github.com/OpenLithoHub/sCO2-TMSR-Toolkit/actions/workflows/python-tests.yml/badge.svg)](https://github.com/OpenLithoHub/sCO2-TMSR-Toolkit/actions/workflows/python-tests.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
+[![Docs: CC BY-SA 4.0](https://img.shields.io/badge/Docs-CC%20BY--SA%204.0-lightgrey.svg)](LICENSE-DOCS)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
 [![CoolProp](https://img.shields.io/badge/CoolProp-%E2%89%A57.1-orange)](https://github.com/CoolProp/CoolProp)
 [![OpenFOAM](https://img.shields.io/badge/OpenFOAM-11-blue)](https://openfoam.org/)
@@ -55,6 +56,9 @@ python src/sco2_property_explorer.py
 
 # Launch the interactive Streamlit app
 streamlit run app/streamlit_app.py
+
+# Generate a sCO2 look-up table for OpenFOAM
+python src/tools/export_lut.py
 
 # Run the test suite
 pytest tests/ -v
@@ -164,10 +168,16 @@ When filing an issue, include: CoolProp version, Python version, and a minimal r
 
 ## License
 
-MIT License. See [LICENSE](LICENSE) for details.
+- **Software / source code:** [Apache License 2.0](LICENSE)
+- **Documentation (`docs/`, `book/`, README content):** [Creative Commons Attribution-ShareAlike 4.0 International](LICENSE-DOCS)
+- **Attribution notices:** see [NOTICE](NOTICE)
 
-Data in `validation/experimental_data/` is sourced from published literature and public DOE reports.
-See `validation/experimental_data/data_sources.md` for provenance and copyright information.
+This dual-license layout matches the OpenLithoHub project family.
+
+Data in `validation/experimental_data/` is referenced from published literature
+and public DOE / national-laboratory reports. See
+[validation/experimental_data/data_sources.md](validation/experimental_data/data_sources.md)
+for provenance and citation information.
 
 ---
 

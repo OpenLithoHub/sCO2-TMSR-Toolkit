@@ -495,7 +495,7 @@ with tab2:
                       delta=f"{100*(result['cp_mix']-result['cp_pure'])/result['cp_pure']:+.2f}%")
 
 st.markdown("---")
-st.caption("Powered by CoolProp · Open Source · MIT License")
+st.caption("Powered by CoolProp · Open Source · Apache-2.0")
 ```
 
 ```bash
@@ -560,12 +560,16 @@ jobs:
 import pytest
 import CoolProp.CoolProp as CP
 
-# Public data points from Sandia Wright et al. 2010 reports (illustrative)
+# Public data points from Sandia Wright et al. 2010 reports
+# WARNING: the rows below are illustrative placeholders only. CoolProp's current
+# density at these (T, P) differs from these reference values by >5%, so the
+# table must be replaced with verified SNL report values before enabling these
+# tests. Until then, leave the list empty so pytest skips it.
 SANDIA_BENCHMARK_POINTS = [
     # (T_K, P_Pa, expected_density_kg_m3, tolerance_pct)
-    (305.4, 7.69e6, 632.0, 5.0),
-    (351.2, 20.0e6, 745.5, 5.0),
-    (773.15, 20.0e6, 142.3, 3.0),
+    # (305.4, 7.69e6, 632.0, 5.0),   # ← verify against original SNL report
+    # (351.2, 20.0e6, 745.5, 5.0),   # ← verify against original SNL report
+    # (773.15, 20.0e6, 142.3, 3.0),  # ← verify against original SNL report
 ]
 
 @pytest.mark.parametrize("T, P, rho_expected, tol_pct", SANDIA_BENCHMARK_POINTS)
@@ -595,7 +599,8 @@ def test_pseudocritical_line_monotonic():
 [![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://sco2-tmsr-toolkit.streamlit.app)
 [![Jupyter Book](https://jupyterbook.org/badge.svg)](https://OpenLithoHub.github.io/sCO2-TMSR-Toolkit)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.xxxxxxx.svg)](https://doi.org/10.5281/zenodo.xxxxxxx)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Docs: CC BY-SA 4.0](https://img.shields.io/badge/Docs-CC%20BY--SA%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-sa/4.0/)
 ```
 
 ---

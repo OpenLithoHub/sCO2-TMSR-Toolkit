@@ -1,0 +1,61 @@
+sCO2-TMSR-Toolkit
+Copyright 2025-2026 OpenLithoHub Contributors
+https://github.com/OpenLithoHub/sCO2-TMSR-Toolkit
+
+Licensed under the Apache License, Version 2.0 (software / source code) and
+Creative Commons Attribution-ShareAlike 4.0 International (documentation).
+See LICENSE and LICENSE-DOCS files.
+
+Experimental validation data in validation/experimental_data/ is sourced from
+published literature and public DOE / national-laboratory reports (e.g., Sandia
+National Laboratories OSTI releases, the DOE STEP demonstration project public
+reports). These data points retain their original publication terms and are
+referenced — not redistributed verbatim — by this project. See
+validation/experimental_data/data_sources.md for provenance.
+
+---
+
+# Third-Party Software Notices
+
+This project depends on the following third-party components.
+
+## Core runtime dependencies
+
+| Component | License | URL |
+|-----------|---------|-----|
+| CoolProp | MIT | https://github.com/CoolProp/CoolProp |
+| NumPy | BSD-3-Clause | https://github.com/numpy/numpy |
+| SciPy | BSD-3-Clause | https://github.com/scipy/scipy |
+| pandas | BSD-3-Clause | https://github.com/pandas-dev/pandas |
+| Matplotlib | Matplotlib License (BSD-style) | https://github.com/matplotlib/matplotlib |
+
+## Optional: app extras
+
+| Component | License | URL |
+|-----------|---------|-----|
+| Streamlit | Apache-2.0 | https://github.com/streamlit/streamlit |
+
+## Development-only
+
+| Component | License | URL |
+|-----------|---------|-----|
+| pytest | MIT | https://github.com/pytest-dev/pytest |
+| pytest-cov | MIT | https://github.com/pytest-dev/pytest-cov |
+
+## External tools (not redistributed)
+
+| Component | License | URL |
+|-----------|---------|-----|
+| OpenFOAM | GPL-3.0 | https://openfoam.org/ |
+| OpenModelica | OSMC-PL 1.8 / GPL-3.0 | https://openmodelica.org/ |
+
+OpenFOAM and OpenModelica are used as external simulation tools; this project
+ships configuration files and post-processing scripts for them but does not
+statically link or redistribute their source. Users who install these tools
+are responsible for compliance with their respective licenses.
+
+---
+
+This NOTICE file is provided in compliance with Apache License 2.0,
+Section 4(d). When redistributing sCO2-TMSR-Toolkit or derivative works, this
+file must be preserved.
