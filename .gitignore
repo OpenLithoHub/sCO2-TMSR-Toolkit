@@ -1,0 +1,50 @@
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+build/
+dist/
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+.tox/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OpenFOAM time-step directories (keep 0/, exclude 1+/)
+cases/*/[1-9]*/
+cases/*/processor*/
+cases/*/postProcessing/*/[1-9]*/
+cases/*/constant/polyMesh/*.gz
+cases/*/constant/polyMesh/sets/
+cases/*/log.*
+cases/*/*.foam
+
+# Generated property tables (regenerate from tools/export_lut.py)
+sco2_lut.csv
+sco2_lut_openfoam.dat
+sco2_properties_table_full.csv
+*.lut.dat
+
+# Generated figures from local runs
+sco2_cp_pseudocritical.png
+
+# Streamlit
+.streamlit/secrets.toml
+
+# IDE
+.idea/
+.vscode/
+*.swp
