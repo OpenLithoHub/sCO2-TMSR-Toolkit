@@ -16,6 +16,8 @@ from dataclasses import dataclass
 import CoolProp.CoolProp as CP
 from CoolProp.CoolProp import PhaseSI, PropsSI
 
+from sco2_warnings import warn_placeholder
+
 PHASE_NAMES = {
     "liquid": "liquid",
     "gas": "gas",
@@ -91,6 +93,11 @@ def calc_mixture_properties(
         rho_mix = PropsSI("D", "T", T, "P", P, mixture)
         cp_mix = PropsSI("C", "T", T, "P", P, mixture)
     except Exception as e:
+        warn_placeholder(
+            "mixture-eos",
+            f"CO2-He HEOS solver failed at T={T:.1f} K, P={P / 1e6:.2f} MPa, "
+            f"x_he={x_he:.4f}: {e}",
+        )
         if verbose:
             print(f"⚠  Mixture calculation failed (log this as an Issue!): {e}")
         return None

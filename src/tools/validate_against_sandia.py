@@ -21,6 +21,10 @@ from pathlib import Path
 import CoolProp.CoolProp as CP
 import pandas as pd
 
+# Make the src/ package importable regardless of how the script is launched.
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from sco2_warnings import warn_placeholder  # noqa: E402
+
 
 def _load_benchmark(path: Path) -> pd.DataFrame:
     df = pd.read_csv(path, comment="#")
@@ -35,6 +39,11 @@ def validate(path: Path, tolerance_pct: float, fluid: str = "CO2") -> int:
     df = _load_benchmark(path)
     measured = df.dropna(subset=["rho_inlet_measured"])
     if measured.empty:
+        warn_placeholder(
+            "snl-step-rows",
+            f"{path.name} contains no verified rows — CI is exercising the "
+            "validation pipeline but skipping all assertions",
+        )
         print(f"[validate_against_sandia] {path}: no verified rows — skipping.")
         return 0
 
