@@ -4,6 +4,8 @@
 > must be traceable to a public, citable report — no exceptions.
 > The bibliographic single-source-of-truth is `docs/references.bib`; per-source
 > extract notes live under `docs/data_extracts/`.
+> Acquisition history (when each PDF was fetched, from where, with what
+> outcome) lives in [`docs/data_extracts/_acquisition_log.md`](../../docs/data_extracts/_acquisition_log.md).
 
 When adding data, append a section here with:
 
@@ -55,6 +57,12 @@ validation harness is exercised even before more SNL rows arrive.
   Do not cite "715 °C RCBC operating data" as available.
 
 Add `STEP_phase1_data.csv` with columns aligned to the SNL CSV when ready.
+
+**Substitute reference until the DOE STEP Phase 1 final report is released:**
+the conference paper ["Extended Duration Operation of a Pilot-Scale
+Supercritical CO₂ Test Loop"](https://www.osti.gov/biblio/2575689)
+(BibTeX `Allison2025_STEP_extended`) is on local disk and indexed at
+[`docs/data_extracts/allison2025_step_extended.md`](../../docs/data_extracts/allison2025_step_extended.md).
 
 ---
 
