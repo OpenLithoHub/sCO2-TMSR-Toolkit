@@ -334,6 +334,11 @@ sCO₂ corrosion data is hard to find. **Thermodynamic cycle and compressor test
 - Test reports available free on OSTI: `https://www.osti.gov`
 - Search: `supercritical CO2 test loop Sandia`
 - Key series: Wright et al. (2010–2016) — compressor inlet T/P, efficiency measurements
+- **Already on local disk + indexed** (per [`docs/data_extracts/_acquisition_log.md`](data_extracts/_acquisition_log.md)):
+  - `Wright2010_SAND2010_0171` — 7 rows already transcribed into `SNL_compressor_data.csv` (Table 2.1, §2.3, §5.3.1, Figures 5-11/5-13).
+  - `Wright2011_SAND2011_7779` — continued-operation follow-up; extract stub created, transcription pending.
+  - `Conboy2014_SAND2014_2098` — later operating-point sweep; extract stub created, transcription pending.
+  - These are the next-priority sources to expand `SNL_compressor_data.csv` rows beyond the current 7.
 
 **STEP Demonstration Project (v1.4 update)**
 - DOE-funded 10 MWe sCO₂ demonstration project
@@ -341,13 +346,17 @@ sCO₂ corrosion data is hard to find. **Thermodynamic cycle and compressor test
 - **Phase 2 (RCBC, ~715 °C):** in progress as of 2025; data expected upon completion
 - Search: `STEP sCO2 demonstration project DOE Southwest Research Institute`
 - Do not cite "715 °C RCBC operating data" as publicly available — it is not yet
+- **Substitute citation until DOE STEP Phase 1 final report is released**:
+  `Allison2025_STEP_extended` — *Extended Duration Operation of a Pilot-Scale sCO₂ Test Loop*, OSTI 2575689. PDF on local disk; extract stub at [`docs/data_extracts/allison2025_step_extended.md`](data_extracts/allison2025_step_extended.md).
 
 **Adding STEP Phase 1 to CI:**
 
 ```python
 # File: validation/experimental_data/STEP_phase1_data.csv
 # Columns: T_inlet_K, P_inlet_Pa, T_outlet_K, P_outlet_Pa, efficiency_measured
-# Source: [cite specific STEP public report + DOI]
+# Source: Allison2025_STEP_extended (OSTI 2575689) — substitute until DOE
+#         STEP Phase 1 final report is released. See
+#         docs/data_extracts/allison2025_step_extended.md for locator notes.
 
 # tests/test_sco2_properties.py — extend the benchmark set:
 STEP_PHASE1_POINTS = [

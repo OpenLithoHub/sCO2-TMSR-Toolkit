@@ -13,6 +13,10 @@
 | [01_phase1_properties.md](01_phase1_properties.md) | Phase 0 (prep) + Phase 1: sCO₂ property tools, CoolProp contributions, Streamlit app, CI/CD | Working on months 1–3 |
 | [02_phase2_cfd_rom.md](02_phase2_cfd_rom.md) | Phase 2: PCHE OpenFOAM benchmark cases, large-file strategy, CFD-ROM surrogate, STEP data | Working on months 4–8 |
 | [03_phase3_modelica.md](03_phase3_modelica.md) | Phase 3: OpenModelica component library, FMU export, tritium permeation, ASME check, online-refueling transient module, Jupyter Book | Working on months 8–18 |
+| [citation_protocol.md](citation_protocol.md) | Bibliographic rules, confidence grades, transcription procedure, acquisition SOP (§ 9) | Adding any external number to the repo |
+| [known_gaps.md](known_gaps.md) | Catalogue of placeholder data and missing references — anchored from runtime warnings | A `[WARNING] Placeholder data` line appears, or planning a new module |
+| [references.bib](references.bib) | Single source of truth for BibTeX | Adding or citing a reference |
+| [data_extracts/](data_extracts/) | Per-source extract notes; `_acquisition_log.md` tracks PDF fetch history | Reading or transcribing from a source |
 
 ---
 
@@ -21,6 +25,8 @@
 - **First visit** → read the "Sober corrections", "Data Black Holes — Survival Strategy", and milestone timeline in [00_strategy.md](00_strategy.md)
 - **Want to start coding now** → jump to "Minimum viable starting point" in [01_phase1_properties.md](01_phase1_properties.md)
 - **Looking for code structure** → every phase document contains a complete repo directory tree and runnable code snippets
+- **Adding a value from a paper or report** → [citation_protocol.md](citation_protocol.md) (rules) + [data_extracts/_acquisition_log.md](data_extracts/_acquisition_log.md) (how to actually get the PDF — battle-tested commands)
+- **A `[WARNING] Placeholder data` showed up at runtime** → [known_gaps.md](known_gaps.md) — every warning anchors here
 
 ---
 

@@ -187,3 +187,103 @@ split into sub-entries. The goal is *findability*, not exhaustive paraphrase.
 
 When in doubt, cite the full key. Short forms are an optimisation, not
 a default.
+
+---
+
+## 9. Acquisition SOP — Battle-Tested Recipes
+
+> **Why this section exists:** Acquiring a public report is rarely a
+> one-shot `curl`. Publisher CDNs throttle, OSTI's HTTP/2 frontend drops
+> streams, dspace WAFs return 405 captchas. The recipes below are
+> the ones that have actually worked in this repo. Every blocked or
+> partial attempt is recorded in
+> [`docs/data_extracts/_acquisition_log.md`](data_extracts/_acquisition_log.md);
+> follow this SOP to keep that log auditable.
+
+### 9.1 Decision tree
+
+For each candidate source:
+
+1. **Try direct fetch first** against the canonical URL.
+2. **If direct fetch fails** (403 / 404 / SSL / timeout / connection drop), retry once via the local HTTP proxy `192.168.1.3:7890`.
+3. **If proxy also fails**, mark `blocked` in the acquisition log, record the HTTP status or error, and move on. Do not retry in a tight loop. A blocked source today may be reachable tomorrow.
+4. **On success**, save the PDF to `~/Downloads/` (do **not** commit it — § 7), then create the `docs/data_extracts/<key>.md` extract document and add the BibTeX entry to `docs/references.bib` *before* transcribing any numbers (§ 5).
+5. **Always record the attempt** in the acquisition-log Attempt Records section, with date, method, command, outcome, next action.
+
+### 9.2 Known-good fetch patterns
+
+**OSTI (SAND reports, conference papers):**
+```bash
+# Use --http1.1 — the OSTI HTTP/2 frontend reproducibly drops streams mid-transfer.
+curl -L --http1.1 --max-time 600 \
+     -o ~/Downloads/<key>.pdf \
+     "https://www.osti.gov/servlets/purl/<biblio_id>"
+```
+The `servlets/purl/<id>` form is the direct PDF endpoint. The `biblio/<id>` form is the landing page — do not fetch that as a PDF.
+
+**NTRS (NASA technical reports):**
+```bash
+# Fast, single-shot. Use the NTRS API search to find the correct submission ID;
+# the ID printed on the landing page is sometimes wrong.
+curl -sL "https://ntrs.nasa.gov/api/citations/search?q=<query>" | jq '.results[].id'
+curl -L --max-time 120 \
+     -o ~/Downloads/<key>.pdf \
+     "https://ntrs.nasa.gov/api/citations/<submission_id>/downloads/<submission_id>.pdf"
+```
+
+**Slow / large download (15 MB+ via proxy, server resets mid-transfer):**
+```bash
+# -C - is HTTP Range resume; combine with proxy + http/1.1.
+# Re-invoke until the file size matches the server's Content-Length.
+for i in {1..15}; do
+  curl -L --http1.1 --max-time 600 --connect-timeout 30 \
+       --proxy http://192.168.1.3:7890 -C - \
+       -o ~/Downloads/<key>.pdf \
+       "<canonical_url>"
+done
+```
+Proven on `Allison2025_STEP_extended` (12 attempts, 15.2 MB) and `Dostal2004_MIT_PhD` (next-day retry after rate-limit cleared).
+
+**MIT DSpace (dspace.mit.edu) — bypass CloudFront WAF:**
+DSpace canonical URLs return HTTP/2 405 captcha pages. Try the author webpage URL instead:
+```bash
+curl -L --http1.1 --proxy http://192.168.1.3:7890 -C - \
+     -o ~/Downloads/<key>.pdf \
+     "https://web.mit.edu/<dept>/www/<file>.pdf"
+```
+
+### 9.3 Verification (mandatory after every download)
+
+```python
+import pathlib
+data = pathlib.Path("~/Downloads/<key>.pdf").expanduser().read_bytes()
+assert b"%%EOF" in data[-1024:], "PDF EOF marker missing — file truncated"
+print(f"{len(data):,} bytes")
+# Compare against the server's Content-Length (curl prints it on -i).
+```
+A PDF that lacks `%%EOF` in the final 1 KB is corrupt — do not extract from it. If the size differs from the server `Content-Length`, the transfer was truncated; resume with `-C -`.
+
+### 9.4 Publisher paywalls (Elsevier / AIP / Springer)
+
+These reproducibly fail both direct and proxy:
+
+- AIP (`pubs.aip.org`) — Cloudflare WAF 403, even via DOI redirect.
+  Example: `SpanWagner1996_CO2_EOS`.
+- Elsevier (`linkinghub.elsevier.com` → `sciencedirect.com`) — landing page reachable, full-text PDF paywalled.
+  Examples: `Kim2014_NED_PCHE`, `Ngo2007_ETFS_PCHE`.
+
+**Action:** mark `blocked` and record substitute strategy in the acquisition log.
+- For reference-quality EOS values, NIST Standard Reference Data (SRD 23 / REFPROP documentation) typically tabulates the same values without paywall.
+- For paywalled journal articles, defer to institutional access; do not attempt scraping.
+
+### 9.5 What is logged
+
+The acquisition log
+([`docs/data_extracts/_acquisition_log.md`](data_extracts/_acquisition_log.md))
+is the single audit trail. It contains:
+
+- Candidate source table — one row per BibTeX key with priority (P0 highest), status, last attempt date.
+- Status legend — `pending`, `downloaded`, `extracted`, `transcribed`, `blocked`, `skipped`.
+- Attempt records — append-only; each attempt gets a date-stamped section with method, command, outcome, next action. **Do not edit prior records.**
+
+PDFs themselves are never committed (§ 7). Only metadata crosses the repo boundary.

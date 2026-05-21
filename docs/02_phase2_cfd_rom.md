@@ -427,6 +427,16 @@ def energy_balance_penalty(T_in, P_in, mdot, Nu_pred, dp_pred,
 **Recommendation:** run the baseline MLP first (§ 2.6.3). Add the penalty only if
 validation MAPE is >10% and you have reliable T_wall data from CFD.
 
+**Upstream physical-constraint references (already on local disk):**
+
+- `Vrancik1968_NASA_TN_D4849` — *Prediction of windage power loss in alternators*, NASA-TN-D-4849.
+  Primary source for the rotor-windage formula `P = π·C_d(Re)·ρ·r⁴·ω³·L_r` cited indirectly by Wright2010 §5.4.
+  Once read-through is complete, this becomes a candidate **soft-physical constraint** for any future turbomachinery-side ROM extension (windage power as a sanity check on shaft-power predictions).
+  See [`docs/data_extracts/vrancik1968_nasa-tn-d4849.md`](data_extracts/vrancik1968_nasa-tn-d4849.md).
+- `Wright2010_SAND2010_0171` Table 5.1 (main-compressor wheel geometry: tip diameter, blade angles, exducer width) — usable as a real-engineering-scale geometry baseline for `case03_airfoil_channel` once the PCHE pipeline is generalized to turbomachinery cascades.
+  See `docs/data_extracts/wright2010_sand2010-0171.md`, "§5.5 Egli labyrinth seal" / "Table 5.1 main-compressor wheel" entries.
+- `Wright2010_SAND2010_0171` Table 3.2 (gas chiller PCHE-like coil geometry: tube OD 38.1 mm / wall 2.4 mm / coil length 19.15 m) — earmarked as the geometry seed for a future `case04_chiller` benchmark beside the academic-paper Kim/Ngo geometries.
+
 ### 2.6.4 Wrap as FMU for Modelica
 
 ```python

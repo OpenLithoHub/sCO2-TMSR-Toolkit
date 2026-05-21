@@ -39,6 +39,11 @@ Four predictable "data black holes" will be hit during execution. Each has a kno
   1. Default map: use Sandia SNL public single-point or coarse curves as a placeholder.
   2. Engineering layer: implement a generic centrifugal scaling law (flow coefficient vs. head coefficient) so the placeholder is at least dimensionally credible across operating points.
   3. Document loudly: *"Default map is concept-validation only. Component exposes a standard CSV/table input — industrial users plug in their proprietary map."* The win is the ingestion interface, not the default numbers.
+- **Public sources currently indexed** (per [`docs/references.bib`](references.bib) and `docs/data_extracts/`):
+  `Wright2010_SAND2010_0171` (design point + Table 5.1 main-compressor wheel geometry; first 7 rows of `SNL_compressor_data.csv`),
+  `Wright2011_SAND2011_7779` (continued-operation follow-up, extract pending),
+  `Conboy2014_SAND2014_2098` (later operating-point sweep, extract pending).
+  These are the seed for the BYOD default map; treat each as documented placeholder, not ground truth.
 
 ### Black Hole 2 — Real PCHE micro-channel geometry & high-fidelity heat-transfer data (Phase 2)
 
@@ -46,6 +51,9 @@ Four predictable "data black holes" will be hit during execution. Each has a kno
 - **Escape — academic stand-ins + the pipeline IS the contribution:**
   1. Drop the vendor-comparison goal. Adopt explicitly idealized geometries from highly-cited PCHE papers (e.g., Ngo et al., Kim et al.) and document the source.
   2. Ship the **end-to-end automated pipeline**: geometry generation → mesh → CFD run → Nu correlation extraction. Even with academic geometries, an open, reproducible pipeline is the durable contribution. Users with confidential geometry can swap inputs and re-run.
+- **PCHE references status** (per [`docs/data_extracts/_acquisition_log.md`](data_extracts/_acquisition_log.md)):
+  `Kim2014_NED_PCHE`, `Ngo2007_ETFS_PCHE` — both Elsevier-paywalled; landing pages reachable but full text is not. Work continues from author webpage abstracts and prior secondary citations until institutional access is arranged.
+  Real engineering-scale chiller geometry (`Wright2010_SAND2010_0171`, Table 3.2: tube OD 38.1 mm / wall 2.4 mm / coil 19.15 m) is on hand for a future `case04_chiller` benchmark.
 
 ### Black Hole 3 — Mixture properties at extreme conditions (Phase 1)
 

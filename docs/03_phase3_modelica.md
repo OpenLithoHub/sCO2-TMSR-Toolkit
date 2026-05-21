@@ -60,9 +60,10 @@ AdvancedReactor-sCO2-Library/
 │   │   ├── IntermediateHeatExchanger.mo # salt side + CO₂ side
 │   │   └── TritiumPermeationLayer.mo    # tritium permeation extension (§ 3.5, optional)
 │   ├── Turbomachinery/
-│   │   ├── Compressor.mo
-│   │   ├── ReCompressor.mo              # recompression cycle
-│   │   └── Turbine.mo
+│   │   ├── Compressor.mo                  # design-point defaults from Wright2010 Table 5.1 (main-compressor wheel)
+│   │   ├── ReCompressor.mo                # recompression cycle
+│   │   ├── Turbine.mo
+│   │   └── LabyrinthSeal.mo               # Egli labyrinth-seal model — defaults from Wright2010 §5.5 (see data_extracts/wright2010_sand2010-0171.md)
 │   ├── Reactor/
 │   │   ├── MoltenSaltReactor.mo         # simplified MSR thermal-hydraulic model
 │   │   ├── ReactorPowerControl.mo
@@ -86,6 +87,25 @@ AdvancedReactor-sCO2-Library/
     ├── UserGuide.md
     └── ComponentReference.md
 ```
+
+### 3.2.1 Turbomachinery Component — Primary References
+
+The Turbomachinery components inherit defaults from the Sandia 10 MWe / 1 kg·s⁻¹
+sCO₂ test loop reports already on local disk (per
+[`docs/data_extracts/_acquisition_log.md`](data_extracts/_acquisition_log.md)).
+Treat each as a **default seed**, not a hard constraint — industrial users override
+via the BYOD interface (§ 0 / strategy doc, Black Hole 1).
+
+| Component | Default-source reference | Locator | Use |
+|---|---|---|---|
+| `Compressor.mo` | `Wright2010_SAND2010_0171` Table 5.1 | `docs/data_extracts/wright2010_sand2010-0171.md` "Table 5.1 main-compressor wheel" | Tip diameter, blade angles, exducer width, design speed/flow as wheel-geometry defaults |
+| `Compressor.mo` (windage loss) | `Vrancik1968_NASA_TN_D4849` (primary) cited via Wright2010 §5.4 (applied) | `docs/data_extracts/vrancik1968_nasa-tn-d4849.md` | `P_windage = π·C_d(Re)·ρ·r⁴·ω³·L_r` — direct formula. Confidence A once read-through completes (currently B via Wright2010 indirect cite). |
+| `LabyrinthSeal.mo` | `Wright2010_SAND2010_0171` §5.5 + Table 5.3 | `docs/data_extracts/wright2010_sand2010-0171.md` "§5.5 Egli labyrinth seal" | Egli leakage correlation as the seal default; teeth count and clearance as Table 5.3 reference |
+| `Compressor.mo` continued operation | `Wright2011_SAND2011_7779` (extract pending) | `docs/data_extracts/wright2011_sand2011-7779.md` | Long-run wear and operating-point data — once transcribed, populates a second SNL operating-point row in `SNL_compressor_data.csv` |
+| `Compressor.mo` performance map | `Conboy2014_SAND2014_2098` (extract pending) | `docs/data_extracts/conboy2014_sand2014-2098.md` | Operating-point sweep data for richer compressor-map placeholder before the ROM/BYOD path is wired |
+| `IntermediateHeatExchanger.mo` chiller side (future `case04_chiller`) | `Wright2010_SAND2010_0171` Table 3.2 | same wright2010 extract doc | Tube OD 38.1 mm / wall 2.4 mm / coil 19.15 m — geometry seed for engineering-scale chiller benchmark |
+
+> Cross-references to strategy doc: BYOD interface for compressor maps — `00_strategy.md` Black Hole 1; PCHE pipeline ingesting confidential geometry — Black Hole 2.
 
 ## 3.3 Core Component — PCHE Heat Exchanger
 

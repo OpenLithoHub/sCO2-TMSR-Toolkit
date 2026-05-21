@@ -21,7 +21,12 @@
 **Where it bites:** Modelica turbomachinery components require multidimensional flow-pressure-efficiency-speed maps. Complete maps from Barber-Nichols, Dresser-Rand, Hanwha PSM are commercial secrets.
 **Current placeholder:** `Components/Turbomachinery/{Compressor,ReCompressor,Turbine}.mo` exposes a generic centrifugal scaling law and a CSV input parameter. The default coefficients are based on Sandia SNL public single-point data and are **concept-validation only**.
 **Escape strategy:** BYOD (Bring Your Own Data) interface. Industrial users plug in their proprietary map via CSV.
-**Upstream:** Sandia SNL test reports (Wright et al. 2010–2016), STEP Phase 1 reports (when fully released).
+**Upstream (already on disk, transcription pending):**
+  - `Wright2010_SAND2010_0171` — Table 5.1 main-compressor wheel geometry (used as `Compressor.mo` defaults; see `docs/data_extracts/wright2010_sand2010-0171.md`).
+  - `Wright2011_SAND2011_7779` — continued-operation follow-up (extract stub created; transcribe operating points to expand `SNL_compressor_data.csv`).
+  - `Conboy2014_SAND2014_2098` — operating-point sweep (extract stub created; transcription pending).
+  - `Vrancik1968_NASA_TN_D4849` — primary windage formula (read-through pending; once transcribed, lifts windage cite from C → A confidence).
+**Upstream (blocked / future):** STEP Phase 2 RCBC reports (not yet public).
 
 ---
 
@@ -32,7 +37,8 @@
 **Where it bites:** Optimal airfoil-fin pitch and angle of attack are vendor-confidential (Heatric, Vacuum Process Engineering). Experimental Nu data at 700 °C / 20 MPa is sparse and contradictory.
 **Current placeholder:** `cases/case0{1,2,3}_*/system/blockMeshDict` use idealized geometries from highly-cited public papers (Ngo et al., Kim et al.). Vendor comparison is explicitly out of scope.
 **Escape strategy:** ship the end-to-end automated pipeline (geometry generation → mesh → CFD run → Nu correlation extraction). The pipeline is the contribution; users with confidential geometry can swap inputs and re-run.
-**Upstream:** Kim et al. *Nuclear Engineering and Design* 270 (2014) 73–81; Ngo et al. *Experimental Thermal and Fluid Science* 32 (2007) 560–570.
+**Upstream (blocked):** `Kim2014_NED_PCHE` and `Ngo2007_ETFS_PCHE` — both Elsevier paywalled (per `docs/data_extracts/_acquisition_log.md`); landing pages reachable, full text not. Geometry references continue from author-webpage abstracts and prior secondary citations until institutional access is arranged.
+**Upstream (on disk, alternate):** `Wright2010_SAND2010_0171` Table 3.2 — engineering-scale gas-chiller coil geometry (tube OD 38.1 mm / wall 2.4 mm / coil 19.15 m). Reserved for a future `case04_chiller` benchmark beside the academic-paper geometries.
 
 ---
 
@@ -43,7 +49,7 @@
 **Where it bites:** For sCO₂ + He or sCO₂ + H₂O at high pressure or near the phase envelope, CoolProp's HEOS backend may fail to converge or raise exceptions.
 **Current placeholder:** `src/sco2_mixture_validation.py` returns `None` and prints a physical warning when the two-phase region is encountered. Failure-envelope contour plots have not yet been produced.
 **Escape strategy:** sweep T-P space and publish a contour plot marking where current open property libraries succeed vs. crash. The boundary itself is a high-value contribution.
-**Upstream:** Span & Wagner (1996); REFPROP NIST mixture model documentation.
+**Upstream (blocked):** `SpanWagner1996_CO2_EOS` — AIP/Cloudflare WAF 403 (per `docs/data_extracts/_acquisition_log.md`). Substitute with NIST Standard Reference Data (SRD 23 / REFPROP documentation) which tabulates the same reference values without paywall, and the in-repo `coolprop_self_consistency.csv` for regression detection.
 
 ---
 
@@ -64,8 +70,8 @@
 **Status:** SNL partially populated (single-pass), STEP placeholder.
 **Where it bites:** the test infrastructure exists (`tests/test_sco2_properties.py`, `src/tools/validate_against_sandia.py`); `validation/experimental_data/SNL_compressor_data.csv` now carries 7 rows transcribed from [`Wright2010_SAND2010_0171`] (see `docs/data_extracts/wright2010_sand2010-0171.md`); `STEP_phase1_data.csv` ships empty (header-only).
 **Current placeholder:** STEP CSV is header-only. `validate_against_sandia.py` exits 0 when no measured rows are found.
-**Escape strategy:** continue transcribing additional public reports per `docs/citation_protocol.md`. Promote SNL rows from single-pass (current) to two-pass before any release tag. Add STEP rows from DOE STEP Phase 1 final report when published.
-**Upstream:** [`Wright2010_SAND2010_0171`] (in `docs/references.bib`); broader OSTI search `supercritical CO2 test loop Sandia`; DOE STEP Phase 1 final report.
+**Escape strategy:** continue transcribing additional public reports per `docs/citation_protocol.md`. Promote SNL rows from single-pass (current) to two-pass before any release tag. Add STEP rows from `Allison2025_STEP_extended` (substitute) immediately, and from the DOE STEP Phase 1 final report when published.
+**Upstream:** `Wright2010_SAND2010_0171` (transcribed); `Wright2011_SAND2011_7779`, `Conboy2014_SAND2014_2098` (on disk, transcription pending); `Allison2025_STEP_extended` — *Extended Duration Operation of a Pilot-Scale sCO₂ Test Loop*, OSTI 2575689, on disk as the cite-of-record substitute until the DOE STEP Phase 1 final report is released. All four entries indexed in `docs/data_extracts/_acquisition_log.md`.
 
 ---
 
