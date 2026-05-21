@@ -1,0 +1,12 @@
+# Phase 2 ROM (docs/02_phase2_cfd_rom.md § 2.6) optional dependencies.
+#
+# Install via:
+#     pip install -r requirements.txt -r requirements-rom.txt
+#
+# Pinned loose because the ROM pipeline is exploratory; tighten once the
+# trained ROM lands a JOSS-cited release.
+torch>=2.0
+scikit-learn>=1.3
+onnx>=1.14
+onnxruntime>=1.16
+pythonfmu>=0.6

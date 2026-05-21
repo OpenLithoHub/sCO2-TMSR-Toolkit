@@ -6,3 +6,7 @@ pandas>=2.0
 streamlit>=1.30
 pytest>=7.4
 pytest-cov>=4.1
+
+# Phase 2 ROM (§ 2.6) — optional. Install with `pip install -r requirements-rom.txt`
+# to enable rom/train_rom.py and the rom_pipeline pytest module.
+
