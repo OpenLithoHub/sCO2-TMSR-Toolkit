@@ -16,7 +16,7 @@ yet been released publicly.
 
 The PDF is **not** committed. Local copy:
 `~/Downloads/STEP_2025_extended_duration.pdf` (14.5 MB, downloaded
-2026-05-22 via 192.168.1.3:7890 proxy with multi-segment resume).
+2026-05-22 via a local HTTP proxy with multi-segment resume).
 
 ## § Stub — read-through pending
 

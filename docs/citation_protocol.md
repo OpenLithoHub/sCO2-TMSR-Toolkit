@@ -205,7 +205,7 @@ a default.
 For each candidate source:
 
 1. **Try direct fetch first** against the canonical URL.
-2. **If direct fetch fails** (403 / 404 / SSL / timeout / connection drop), retry once via the local HTTP proxy `192.168.1.3:7890`.
+2. **If direct fetch fails** (403 / 404 / SSL / timeout / connection drop), retry once via a local HTTP proxy if one is available.
 3. **If proxy also fails**, mark `blocked` in the acquisition log, record the HTTP status or error, and move on. Do not retry in a tight loop. A blocked source today may be reachable tomorrow.
 4. **On success**, save the PDF to `~/Downloads/` (do **not** commit it — § 7), then create the `docs/data_extracts/<key>.md` extract document and add the BibTeX entry to `docs/references.bib` *before* transcribing any numbers (§ 5).
 5. **Always record the attempt** in the acquisition-log Attempt Records section, with date, method, command, outcome, next action.
@@ -237,7 +237,7 @@ curl -L --max-time 120 \
 # Re-invoke until the file size matches the server's Content-Length.
 for i in {1..15}; do
   curl -L --http1.1 --max-time 600 --connect-timeout 30 \
-       --proxy http://192.168.1.3:7890 -C - \
+       --proxy http://<your-local-proxy>:<port> -C - \
        -o ~/Downloads/<key>.pdf \
        "<canonical_url>"
 done
@@ -247,7 +247,7 @@ Proven on `Allison2025_STEP_extended` (12 attempts, 15.2 MB) and `Dostal2004_MIT
 **MIT DSpace (dspace.mit.edu) — bypass CloudFront WAF:**
 DSpace canonical URLs return HTTP/2 405 captcha pages. Try the author webpage URL instead:
 ```bash
-curl -L --http1.1 --proxy http://192.168.1.3:7890 -C - \
+curl -L --http1.1 --proxy http://<your-local-proxy>:<port> -C - \
      -o ~/Downloads/<key>.pdf \
      "https://web.mit.edu/<dept>/www/<file>.pdf"
 ```

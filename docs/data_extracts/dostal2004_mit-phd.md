@@ -17,7 +17,7 @@ efficiency figures").
 
 The PDF is **not** committed. Local copy:
 `~/Downloads/Dostal2004_MIT_PhD.pdf` (6.6 MB, downloaded 2026-05-22
-via 192.168.1.3:7890 proxy).
+via a local HTTP proxy).
 
 ## § Stub — read-through pending
 
