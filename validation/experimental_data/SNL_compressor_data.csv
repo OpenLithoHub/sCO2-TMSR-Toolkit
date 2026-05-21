@@ -1,20 +1,48 @@
-# Sandia National Laboratories sCO2 compressor test loop — placeholder header.
+# Sandia National Laboratories sCO2 compressor test loop — Wright et al. 2010.
 #
-# STATUS: NOT VERIFIED. The rows below are illustrative placeholders so the
-# pipeline (pytest, validate_against_sandia.py) can be exercised end-to-end.
-# Every row must be replaced with values transcribed from the original
-# Wright et al. SNL reports (OSTI public) before this file can be cited as a
-# benchmark source. See data_sources.md for transcription rules.
+# SOURCE: Wright, Radel, Vernon, Rochau, Pickard,
+#   "Operation and Analysis of a Supercritical CO2 Brayton Cycle",
+#   SAND2010-0171, Sandia National Laboratories, September 2010.
+#   OSTI biblio/984129.
+#
+# TRANSCRIPTION NOTES:
+# - Rows 1-3: Table 2.1, p.23 — design point + dome-side state points.
+#   T1, P1 are the compressor inlet; T2, P2 are the compressor outlet.
+#   Densities are NOT reported directly in Table 2.1; rho_inlet_measured
+#   is left blank for those rows. The validator will skip rows missing rho
+#   but still record T/P for downstream regression checks.
+# - Row 4: Section 2.3 narrative, p.20 — measured compression-process
+#   inlet/outlet density (0.608 kg/L -> 0.670 kg/L) along the pseudo-
+#   critical line. P-ratio 1.8, T_inlet ~ 305.3 K (design-point inlet).
+#   Outlet T derived from Table 2.1 design point (T2 = 324.659 K).
+# - Row 5: Section 5.3.1, p.54 — spin-test CBC_081202_1003 measured
+#   inlet conditions (304.4 K / 7.536 MPa). Outlet pressure peak 12.1 MPa
+#   reported on the same page.
+# - Row 6: Figure 5-11 caption, p.57 — performance map taken at
+#   inlet 304.1 K / 7.377 MPa (~ critical point: 304.13 K / 7.377 MPa).
+# - Row 7: Figure 5-13, p.60 — labelled "Compressor Inlet 305 K, 7690 kPa"
+#   and "Compressor Exit Chamber 323 K, 13840 kPa". Same engineering
+#   design point as Table 2.1 row 1, kept here as a rounded sanity
+#   reference and a separate citation pointer.
+#
+# The "rho_inlet_measured" column for row 4 comes from narrative prose
+# ("0.608 kg/liter to 0.670 kg/liter"), not a tabulated Coriolis-meter
+# value. Treat as +/-5% per Section 2.3 wording. validate_against_sandia.py
+# uses a 5% tolerance for these rows.
 #
 # Columns:
 #   T_inlet_K            : Compressor inlet temperature (K)
 #   P_inlet_Pa           : Compressor inlet pressure (Pa)
 #   T_outlet_K           : Compressor outlet temperature (K)
 #   P_outlet_Pa          : Compressor outlet pressure (Pa)
-#   rho_inlet_measured   : Measured inlet density (kg/m^3) — leave blank if not reported
-#   efficiency_measured  : Reported isentropic efficiency (0-1) — leave blank if not reported
-#   source_ref           : Citation key matching docs/00_strategy.md references
+#   rho_inlet_measured   : Measured/reported inlet density (kg/m^3)
+#   efficiency_measured  : Reported isentropic efficiency (0-1)
+#   source_ref           : Citation key — see data_sources.md
 T_inlet_K,P_inlet_Pa,T_outlet_K,P_outlet_Pa,rho_inlet_measured,efficiency_measured,source_ref
-# 305.4,7.69e6,,,632.0,,Wright2010_SAND_PLACEHOLDER
-# 351.2,2.00e7,,,745.5,,Wright2010_SAND_PLACEHOLDER
-# 773.15,2.00e7,,,142.3,,Wright2010_SAND_PLACEHOLDER
+305.3,7690000,324.659,13984000,,0.6638,Wright2010_SAND_T2.1_design
+295.0,5000000,316.889,6461478,,0.6638,Wright2010_SAND_T2.1_vapor
+295.0,7690000,306.036,14898443,,0.6368,Wright2010_SAND_T2.1_liquid
+305.3,7690000,324.659,13984000,608.0,0.6638,Wright2010_SAND_S2.3_pseudocrit
+304.4,7536000,,12100000,,,Wright2010_SAND_S5.3.1_CBC081202
+304.1,7377000,,,,,Wright2010_SAND_F5.11_perfmap
+305.0,7690000,323.0,13840000,,,Wright2010_SAND_F5.13_design
