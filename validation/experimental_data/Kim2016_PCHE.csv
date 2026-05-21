@@ -1,0 +1,24 @@
+# Kim et al. (2014) PCHE zigzag-channel experimental dataset — placeholder header.
+#
+# STATUS: NOT POPULATED. The Kim 2016 / 2014 series is the canonical public
+# experimental reference for zigzag PCHE channels in the Re = 1500-50000 range.
+# Rows must be transcribed (or carefully digitized) from:
+#
+#   Kim, Lee, Kim, Cha. "Numerical investigation on thermal-hydraulic
+#   performance of new printed circuit heat exchanger model."
+#   Nuclear Engineering and Design 270 (2014) 73-81.
+#
+# See validation/experimental_data/data_sources.md for transcription rules.
+# Until each row is verified against the original report figure/table, the
+# CFD post-processing pipeline (postProcessing/validate_against_exp.py) will
+# print "exp rows=0 — skipping" and exit 0.
+#
+# Columns:
+#   Re                : Reynolds number based on hydraulic diameter
+#   Pr                : Prandtl number at bulk conditions
+#   Nu_avg            : Average Nusselt number (measured / digitized)
+#   f_friction        : Darcy friction factor (measured / digitized)
+#   geometry          : channel geometry tag — straight | zigzag | airfoil
+#   source_ref        : citation key (Kim2014_NED, Ngo2007_ETFS, etc.)
+#   notes             : transcription / digitization caveats
+Re,Pr,Nu_avg,f_friction,geometry,source_ref,notes

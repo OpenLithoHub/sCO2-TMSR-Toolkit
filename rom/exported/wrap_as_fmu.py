@@ -19,10 +19,22 @@ import numpy as np
 
 try:
     from pythonfmu import Fmi2Causality, Fmi2Slave, Integer, Real
+    _PYTHONFMU_OK = True
 except ImportError:  # pragma: no cover — pythonfmu only required at build time
-    raise SystemExit(
-        "pythonfmu is required to build this FMU. `pip install pythonfmu`."
-    )
+    # Stub so the module imports cleanly in environments without pythonfmu.
+    # Instantiating PCHE_ROM_FMU will raise; `pythonfmu build` will fail loudly.
+    _PYTHONFMU_OK = False
+
+    class _Missing:
+        def __init__(self, *a, **kw):
+            raise SystemExit(
+                "pythonfmu is required to build this FMU. `pip install pythonfmu`."
+            )
+
+    Fmi2Slave = _Missing  # type: ignore[assignment,misc]
+    Fmi2Causality = _Missing  # type: ignore[assignment,misc]
+    Integer = _Missing  # type: ignore[assignment,misc]
+    Real = _Missing  # type: ignore[assignment,misc]
 
 
 class PCHE_ROM_FMU(Fmi2Slave):

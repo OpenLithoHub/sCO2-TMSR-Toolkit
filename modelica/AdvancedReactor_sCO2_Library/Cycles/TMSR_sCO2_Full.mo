@@ -16,7 +16,9 @@ equation
   // connect(onlineRefuel.T_core_K,       intermediateHX.T_hot_in);
 
   // Example transient driver: +3 pcm reactivity step at t = 100 s.
-  onlineRefuel.delta_rho_fuelling = if time > 100 then 3.0 else 0.0;
+  // OnlineFuellingTransient.delta_rho_fuelling expects dimensionless reactivity (Δk/k).
+  // 3 pcm = 3e-5.
+  onlineRefuel.delta_rho_fuelling = if time > 100 then 3.0e-5 else 0.0;
 
   annotation (Documentation(info="<html>
     <p>Reference: docs/03_phase3_modelica.md § 3.7.4.</p>

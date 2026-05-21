@@ -38,6 +38,24 @@ Add `STEP_phase1_data.csv` with columns aligned to the SNL CSV when ready.
 
 ---
 
+## Kim et al. (2014) PCHE zigzag-channel correlation dataset
+
+**Status:** *not yet populated.* Placeholder file `Kim2016_PCHE.csv` ships
+with header-only contents.
+
+- **Reference:** Kim, Lee, Kim, Cha. *Nuclear Engineering and Design* 270
+  (2014) 73–81. "Numerical investigation on thermal-hydraulic performance of
+  new printed circuit heat exchanger model."
+- **Use:** primary experimental reference for `cases/case02_zigzag_channel`
+  validation. Provides Re vs. Nu and Re vs. friction-factor data for the
+  representative zigzag geometry adopted in the OpenFOAM case.
+- **Transcription policy:** prefer values from numerical tables; if values
+  must be digitized from a plot, mark the row's `notes` column with the
+  digitization tool used (e.g., WebPlotDigitizer 4.6) and the source figure
+  number.
+
+---
+
 ## What is *not* permitted here
 
 - Full REFPROP source code (commercial)

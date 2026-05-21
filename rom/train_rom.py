@@ -31,11 +31,8 @@ except ImportError as e:
         "PyTorch not installed. Install with `pip install torch` (CPU build is fine)."
     ) from e
 
-try:
-    from sklearn.model_selection import train_test_split
-    from sklearn.preprocessing import StandardScaler
-except ImportError as e:
-    raise SystemExit("scikit-learn not installed. `pip install scikit-learn`.") from e
+# sklearn is only needed inside train(); import lazily so other entry points
+# (FMU wrapper, ONNX export, smoke imports) don't require it.
 
 
 class PCHE_ROM(nn.Module):
@@ -111,6 +108,12 @@ def train(
         dtype=np.float32
     )
     y = df[["Nu_avg", "dp_total_Pa"]].to_numpy(dtype=np.float32)
+
+    try:
+        from sklearn.model_selection import train_test_split
+        from sklearn.preprocessing import StandardScaler
+    except ImportError as e:
+        raise SystemExit("scikit-learn not installed. `pip install scikit-learn`.") from e
 
     xs, ys = StandardScaler(), StandardScaler()
     Xn = xs.fit_transform(X)
