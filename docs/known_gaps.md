@@ -61,11 +61,11 @@
 ## Gap 5 — SNL / STEP benchmark CSV rows  <a id="snl-step-rows"></a>
 
 **Phase:** 1 (CI benchmark).
-**Status:** placeholder rows commented out in CSV; pytest skips assertions.
-**Where it bites:** the test infrastructure exists (`tests/test_sco2_properties.py`, `src/tools/validate_against_sandia.py`) but the CSVs `validation/experimental_data/{SNL_compressor_data,STEP_phase1_data}.csv` ship empty (header-only).
-**Current placeholder:** illustrative rows are present as comments only. `validate_against_sandia.py` exits 0 when no measured rows are found.
-**Escape strategy:** transcribe rows directly from public Sandia OSTI reports and DOE STEP Phase 1 reports. Verify each row against the cited table before uncommenting.
-**Upstream:** OSTI search `supercritical CO2 test loop Sandia`; DOE STEP Phase 1 final report.
+**Status:** SNL partially populated (single-pass), STEP placeholder.
+**Where it bites:** the test infrastructure exists (`tests/test_sco2_properties.py`, `src/tools/validate_against_sandia.py`); `validation/experimental_data/SNL_compressor_data.csv` now carries 7 rows transcribed from [`Wright2010_SAND2010_0171`] (see `docs/data_extracts/wright2010_sand2010-0171.md`); `STEP_phase1_data.csv` ships empty (header-only).
+**Current placeholder:** STEP CSV is header-only. `validate_against_sandia.py` exits 0 when no measured rows are found.
+**Escape strategy:** continue transcribing additional public reports per `docs/citation_protocol.md`. Promote SNL rows from single-pass (current) to two-pass before any release tag. Add STEP rows from DOE STEP Phase 1 final report when published.
+**Upstream:** [`Wright2010_SAND2010_0171`] (in `docs/references.bib`); broader OSTI search `supercritical CO2 test loop Sandia`; DOE STEP Phase 1 final report.
 
 ---
 

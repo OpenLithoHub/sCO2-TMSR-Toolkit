@@ -28,6 +28,8 @@ Acknowledge these realities upfront:
 > The most decision-relevant numbers in advanced reactors and sCO₂ thermal hydraulics — commercial compressor maps, real-plant corrosion rates, Heatric's actual PCHE etching geometry — are commercial secrets or national-lab restricted. Waiting to collect "complete" data before shipping guarantees the project never ships.
 > Industrial users typically have the data; what they lack is a system-level framework that can ingest it. Build the framework with documented placeholders, expose clean ingestion interfaces, and the data will follow from the institutions that hold it.
 
+> **Citation discipline:** Every external number cited or transcribed in this repo follows [`docs/citation_protocol.md`](citation_protocol.md). The bibliographic single-source-of-truth is [`docs/references.bib`](references.bib); per-source extract notes live under [`docs/data_extracts/`](data_extracts/).
+
 Four predictable "data black holes" will be hit during execution. Each has a known escape strategy.
 
 ### Black Hole 1 — sCO₂ compressor / turbine performance maps (Phase 3)

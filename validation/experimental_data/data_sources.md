@@ -1,45 +1,39 @@
 # Experimental Data Sources
 
-This directory will hold tabulated experimental benchmark data referenced from
-public sources. **Each row in every CSV must be traceable to a public,
-citable report.** When adding data, append a section here with:
+> **Citation rules:** see `docs/citation_protocol.md`. Every row in every CSV
+> must be traceable to a public, citable report — no exceptions.
+> The bibliographic single-source-of-truth is `docs/references.bib`; per-source
+> extract notes live under `docs/data_extracts/`.
 
-- Source (paper title, lab report number, DOI/URL)
-- Original data form (table number / figure number)
+When adding data, append a section here with:
+
+- BibTeX key (must already exist in `docs/references.bib`)
+- Original data form (table number / figure number / narrative locator)
 - Whether values were transcribed from a table or digitized from a plot
+- Confidence grade per `citation_protocol.md` § 3
 - Date accessed
 
 ---
 
 ## Sandia National Laboratories (SNL) sCO2 test loop
 
-**Status:** *not yet populated.* Placeholders for SNL benchmark points exist in
-`tests/test_sco2_properties.py` and must be replaced with verified values from
-the original Wright et al. reports before declaring "validated against
-experimental data".
+**Status:** populated (single-pass).
+**BibTeX key:** [`Wright2010_SAND2010_0171`](../../docs/references.bib).
+**Extract notes:** [`docs/data_extracts/wright2010_sand2010-0171.md`](../../docs/data_extracts/wright2010_sand2010-0171.md).
 
-### Recommended primary report
+`SNL_compressor_data.csv` carries 7 rows transcribed from SAND2010-0171:
 
-- **Wright, Conboy, Rochau** (2010) *Operation and analysis of a supercritical
-  CO₂ Brayton cycle.* OSTI biblio/984129. Free PDF:
-  `https://www.osti.gov/servlets/purl/984129`
-- Look for the small-scale loop section: compressor inlet T near 305 K
-  (32 °C), inlet P near 7.7 MPa (just above CO₂ critical pressure).
-  Density values are reported in tabulated form per operating sweep.
+| Row tag | Locator | Confidence |
+|---|---|---|
+| `Wright2010_SAND_T2.1_design`  | Table 2.1, p.23 | A |
+| `Wright2010_SAND_T2.1_vapor`   | Table 2.1, p.23 | A |
+| `Wright2010_SAND_T2.1_liquid`  | Table 2.1, p.23 | A |
+| `Wright2010_SAND_S2.3_pseudocrit` | §2.3, p.20   | B |
+| `Wright2010_SAND_S5.3.1_CBC081202` | §5.3.1, p.54 | B |
+| `Wright2010_SAND_F5.11_perfmap`    | Figure 5-11, p.57 | B |
+| `Wright2010_SAND_F5.13_design`     | Figure 5-13, p.60 | B |
 
-### Wider Wright et al. series (2010–2016)
-
-- Search OSTI: `supercritical CO2 test loop Sandia`
-- Look for SAND2010-XXXX, SAND2011-XXXX, SAND2014-XXXX series.
-- Earlier reports describe the small-scale loop; later reports describe the
-  10 MWe-class loop and document compressor inlet near-critical operation.
-
-### Transcription procedure
-
-1. Download the PDF and locate the operating-conditions table.
-2. Copy each row's `T_inlet`, `P_inlet`, `ρ_inlet`, η into the CSV.
-3. Set `source_ref` to a citation key (e.g. `Wright2010_984129_table3`).
-4. Open a PR; CI re-runs `validate_against_sandia.py` against the new rows.
+Pending: two-pass review per `citation_protocol.md` § 5 before any release tag.
 
 ### Self-consistency fallback
 
@@ -48,7 +42,7 @@ experimental data".
 CoolProp. **It is not experimental data** — its sole purpose is to detect
 EOS regressions when CoolProp itself is upgraded. Source tag is
 `coolprop_self`; CI runs the pipeline against this file too so the
-validation harness is exercised even before SNL rows arrive.
+validation harness is exercised even before more SNL rows arrive.
 
 ---
 

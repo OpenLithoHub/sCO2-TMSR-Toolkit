@@ -1,0 +1,83 @@
+% sCO2-TMSR-Toolkit — bibliographic single source of truth.
+%
+% RULES (full version: docs/citation_protocol.md):
+%   - Add an entry only when something in this repo references it.
+%   - Cite key format: FirstAuthorYYYY[_disambig]
+%   - All references appearing in docs/, src/, validation/ MUST resolve to a
+%     key in this file. CI checks this (TODO: scripts/check_citations.py).
+%   - Never delete keys without a follow-up sweep — they may be cited from
+%     CSV `source_ref` columns that grep alone may miss.
+
+@techreport{Wright2010_SAND2010_0171,
+  author      = {Wright, Steven A. and Radel, Ross F. and Vernon, Milton E.
+                 and Rochau, Gary E. and Pickard, Paul S.},
+  title       = {Operation and Analysis of a Supercritical {CO$_2$} {Brayton} Cycle},
+  institution = {Sandia National Laboratories},
+  number      = {SAND2010-0171},
+  year        = {2010},
+  month       = sep,
+  address     = {Albuquerque, NM},
+  url         = {https://www.osti.gov/biblio/984129},
+  note        = {Approved for public release; unlimited distribution.
+                 Primary public source for SNL S-CO2 compression-loop
+                 design point and dome-side state data.}
+}
+
+% ---------------------------------------------------------------------------
+% Indirect references — cited by Wright2010 above and used downstream in this
+% repo (loss models, mean-line analysis). Not yet directly verified against
+% the original publications; flagged confidence "C" per citation_protocol.md.
+% ---------------------------------------------------------------------------
+
+@techreport{Vrancik1968_NASA_TN_D4849,
+  author      = {Vrancik, James E.},
+  title       = {Prediction of Windage Power Loss in Alternators},
+  institution = {NASA Lewis Research Center},
+  number      = {NASA-TN-D-4849},
+  year        = {1968},
+  note        = {Cited in Wright2010 §5.4 for rotor-windage power loss.
+                 Used in this repo as a soft physical constraint for ROM
+                 extrapolation (rom/ training notes).}
+}
+
+@techreport{Galvas1973_NASA_TN_D7487,
+  author      = {Galvas, Michael R.},
+  title       = {Fortran Program for Predicting Off-Design Performance
+                 of Centrifugal Compressors},
+  institution = {NASA Lewis Research Center},
+  number      = {NASA-TN-D-7487},
+  year        = {1973},
+  note        = {Cited in Wright2010 §5.3 (CCODP code). Indirect.}
+}
+
+@book{Japikse1996_CentrifugalCompressor,
+  author    = {Japikse, David},
+  title     = {Centrifugal Compressor Design and Performance},
+  publisher = {Concepts ETI},
+  year      = {1996},
+  note      = {Cited by Wright2010 §5.3.1 mean-line method. Indirect.}
+}
+
+@phdthesis{Jiang2006_CompressorLossModels,
+  author = {Jiang, W.},
+  title  = {Investigation of Centrifugal Compressor Loss Models},
+  year   = {2006},
+  note   = {Cited by Wright2010 §5.3.1. Full citation incomplete in source;
+            verify before direct use.}
+}
+
+@book{Oh1997_CentrifugalCompressorLosses,
+  author = {Oh, H. W.},
+  title  = {Optimum Aerodynamic Design of Centrifugal Compressors},
+  year   = {1997},
+  note   = {Cited by Wright2010 §5.3.1. Verify before direct use.}
+}
+
+@article{DellaCorte2006_GasFoilBearings,
+  author = {Della Corte, Christopher},
+  title  = {Stiffness and Damping Coefficient Estimation of
+            Compliant Surface Gas Bearings for Oil-Free Turbomachinery},
+  year   = {2006},
+  note   = {Cited by Wright2010 §5.4 for gas-foil bearing power-loss
+            characterisation at low pressure.}
+}
