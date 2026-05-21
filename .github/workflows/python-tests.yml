@@ -35,6 +35,21 @@ jobs:
       - name: Run pytest with coverage
         run: pytest tests/ -v --cov=src --cov-report=xml --cov-report=term
 
+      - name: Regenerate self-consistency benchmark CSV
+        run: python -m src.tools.build_self_consistency_csv
+
+      - name: Validate CoolProp against self-consistency benchmark
+        run: |
+          python -m src.tools.validate_against_sandia \
+            --data validation/experimental_data/coolprop_self_consistency.csv \
+            --tolerance 0.01
+
+      - name: Validate CoolProp against SNL benchmark (skipped if empty)
+        run: |
+          python -m src.tools.validate_against_sandia \
+            --data validation/experimental_data/SNL_compressor_data.csv \
+            --tolerance 5.0
+
       - name: Upload coverage to Codecov
         if: matrix.python-version == '3.11'
         uses: codecov/codecov-action@v4
