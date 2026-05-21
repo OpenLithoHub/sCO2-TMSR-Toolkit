@@ -25,6 +25,9 @@ sys.path.insert(0, str(REPO_ROOT))
 
 torch = pytest.importorskip("torch", reason="PyTorch not installed (rom optional)")
 sklearn = pytest.importorskip("sklearn", reason="scikit-learn not installed")
+# `onnx` is also optional (requirements-rom.txt). Tests that exercise the
+# torch.onnx export path call `pytest.importorskip("onnx")` individually so
+# the column-shape and CSV round-trip tests still run without it.
 
 
 def test_synthetic_dataset_has_required_columns():
@@ -53,6 +56,7 @@ def test_synthetic_to_csv(tmp_path):
 
 def test_end_to_end_train_export(tmp_path):
     """Train on synthetic data and confirm ONNX + scalers land on disk."""
+    pytest.importorskip("onnx", reason="onnx not installed (rom optional)")
     from rom.dataset.extract_from_cfd import synthetic_dataset
     from rom.train_rom import train
 
@@ -70,6 +74,7 @@ def test_end_to_end_train_export(tmp_path):
 
 def test_onnx_runtime_inference_round_trip(tmp_path):
     """A freshly-exported ONNX must be loadable by onnxruntime."""
+    pytest.importorskip("onnx", reason="onnx not installed (rom optional)")
     ort = pytest.importorskip("onnxruntime", reason="onnxruntime not installed")
 
     from rom.dataset.extract_from_cfd import synthetic_dataset

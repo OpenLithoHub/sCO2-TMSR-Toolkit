@@ -8,6 +8,7 @@ model ValidationTests
   AdvancedReactor_sCO2_Library.Components.Turbomachinery.Compressor         c;
   AdvancedReactor_sCO2_Library.Components.Turbomachinery.ReCompressor       rc;
   AdvancedReactor_sCO2_Library.Components.Turbomachinery.Turbine            t;
+  AdvancedReactor_sCO2_Library.Components.Turbomachinery.LabyrinthSeal      seal;
   AdvancedReactor_sCO2_Library.Components.HeatExchangers.IntermediateHeatExchanger
                                                                             ihx;
   AdvancedReactor_sCO2_Library.Components.HeatExchangers.PCHE               pche;
