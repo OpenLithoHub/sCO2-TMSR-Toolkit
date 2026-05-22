@@ -6,9 +6,16 @@
 # Pipeline:
 #   1. Generate helical_tube.stl + chiller_shell.stl from Wright2010 Table 3.2
 #      defaults (R=200 mm, N=15, pitch=101.6 mm, tube OD=38.1 mm).
-#   2. blockMesh: background Cartesian mesh enclosing both STLs.
-#   3. snappyHexMesh: cut tube + shell walls out of the background.
-#   4. checkMesh + buoyantPimpleFoam smoke run.
+#   2. surfaceFeatureExtract: extract sharp edges (tube end caps + shell rims)
+#      so snappyHexMesh can snap to them.
+#   3. blockMesh: background Cartesian mesh enclosing both STLs.
+#   4. snappyHexMesh: cut tube + shell walls out of the background, with
+#      production refinement (3 4)/(2 3) and surface layers on the tube wall.
+#   5. checkMesh + buoyantPimpleFoam smoke run.
+#
+# Production-grade refinement (matches snappyHexMeshDict). Set
+# CASE04_SMOKE_TEST=1 in the environment to fall back to coarser refinement
+# without editing the dict (passes -parallel/-overwrite untouched).
 set -e
 cd "${0%/*}" || exit 1
 
@@ -21,13 +28,16 @@ mkdir -p constant/triSurface
 PYTHONPATH="$REPO_ROOT/src" python3 -m tools.cad.helical_coil \
     --out-dir constant/triSurface
 
-# (2) Background mesh.
+# (2) Feature-edge extraction (tube end caps + shell rims).
+runApplication surfaceFeatureExtract
+
+# (3) Background mesh.
 runApplication blockMesh
 
-# (3) Cut helix + shell.
+# (4) Cut helix + shell with production refinement + surface layers.
 runApplication snappyHexMesh -overwrite
 
-# (4) Quality check + smoke solve.
+# (5) Quality check + smoke solve.
 runApplication checkMesh
 runApplication buoyantPimpleFoam
 echo "case04_chiller: done."

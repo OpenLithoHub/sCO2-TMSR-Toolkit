@@ -48,13 +48,14 @@ jobs:
         run: |
           python -m src.tools.validate_against_sandia \
             --data validation/experimental_data/SNL_compressor_data.csv \
+            --check rho,h \
             --tolerance 5.0
 
-      - name: Validate CoolProp enthalpy against BYU pilot benchmark
+      - name: Validate CoolProp enthalpy + density against BYU pilot benchmark
         run: |
           python -m src.tools.validate_against_sandia \
             --data validation/experimental_data/BYU_pilot_data.csv \
-            --check h \
+            --check rho,h \
             --tolerance 1.0
 
       - name: Upload coverage to Codecov

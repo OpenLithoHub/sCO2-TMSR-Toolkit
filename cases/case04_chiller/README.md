@@ -39,13 +39,18 @@
 
 ## Status
 
-🚧 **Helical-coil pipeline wired (smoke-test grade).** STL generator
+✅ **Helical-coil pipeline at production-grade refinement.** STL generator
 (`src/tools/cad/helical_coil.py`) emits `helical_tube.stl` + `chiller_shell.stl`
-from the Wright2010 Table 3.2 defaults; `system/blockMeshDict` is the
-background Cartesian mesh enclosing both STLs; `system/snappyHexMeshDict`
-cuts the tube and shell walls. `Allrun` now runs the full chain
-(STL → blockMesh → snappyHexMesh → checkMesh → buoyantPimpleFoam).
-Refinement levels (2 3)/(1 1) are smoke-test grade — bump for production.
+from the Wright2010 Table 3.2 defaults; `system/surfaceFeatureExtractDict`
+extracts feature edges (tube end caps + shell rims) into `.eMesh` files;
+`system/blockMeshDict` is the background Cartesian mesh enclosing both STLs
+and exposes `liquid_inlet` / `liquid_outlet` / `background_sides` patches
+(named for the shell-side flow domain — see "What still needs doing" for
+the gas-side multi-region split); `system/snappyHexMeshDict` cuts the tube
+and shell walls at production levels (3 4)/(2 3), references the feature
+edges, and grows surface layers on the tube wall (5 layers, expansion 1.2).
+`Allrun` runs the full chain (STL → surfaceFeatureExtract → blockMesh →
+snappyHexMesh → checkMesh → buoyantPimpleFoam).
 
 The intent of staging this case is to:
 
@@ -65,13 +70,20 @@ The intent of staging this case is to:
       `src/tools/cad/helical_coil.py` (tests in
       `tests/test_helical_coil_cad.py`).
 - [x] Switch `system/` over to `snappyHexMesh` on the generated STL.
-- [ ] Production-grade refinement: bump `tube_wall` to (3 4) with surface
-      layers, add a feature-edge file (`surfaceFeatureExtract`) so the
-      tube/shell intersection edges are captured.
-- [ ] Re-do the convective heat-transfer extraction script to handle the
-      gas-side / liquid-side patch split (currently only the tube outer
-      wall is exposed; shell-side flow domain is not yet meshed as a
-      separate region).
+- [x] Production-grade refinement: tube_wall (3 4) with 5 surface layers,
+      shell_wall (2 3) with 2 surface layers, feature-edge file via
+      `surfaceFeatureExtract` so the tube/shell intersection edges are
+      captured. See `system/snappyHexMeshDict` +
+      `system/surfaceFeatureExtractDict`.
+- [x] Rename background patches to reflect that the meshed domain is
+      shell-side (liquid) only until the tube interior becomes a separate
+      region: `liquid_inlet` / `liquid_outlet` / `background_sides`.
+- [ ] Multi-region split (chtMultiRegionFoam): mesh the tube interior as a
+      separate `gas` region and the shell annulus as `liquid`, with a
+      `tube_wall` faceZone coupling them via solid heat conduction. Today
+      `tube_wall` is exposed as a single wall patch and the gas-side flow
+      domain is not yet meshed. The post-processing for convective heat
+      transfer extraction blocks on this split.
 - [ ] Calibrate `coil_radius` against the Wright2010 single-coil length
       (19.15 m). Default R=200 mm gives ~18.9 m arc; sweep R or N to
       match exactly if needed (see CLI `--coil-radius` / `--turns`).

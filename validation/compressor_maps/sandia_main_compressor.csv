@@ -1,0 +1,24 @@
+# sCO2 main-compressor BYOD off-design map — engineering placeholder.
+#
+# Source: Wright2010 SAND2010-0171 design point (φ_design ≈ 0.024 from
+# Table 3.1 / Table 5.1 wheel geometry: ṁ=3.5 kg/s, ρ_in=608 kg/m³,
+# ω=75 000 rpm = 7854 rad/s, r_tip=18.7 mm → φ = ṁ/(ρ·ω·r_tip³) ≈ 0.024).
+# Surrounding rows are a *generic centrifugal scaling*  (Casey & Robinson
+# 2013 textbook surge-to-choke shape: ψ rises gently from choke side, peaks
+# near design, falls toward surge; η has a rounded peak ~5 % wide of design).
+#
+# This is a documented placeholder — Confidence C — concept-validation
+# only. Industrial users replace this CSV with their proprietary map.
+# CSV columns: phi (flow coefficient, -), psi (head coefficient, -),
+#              eta (isentropic efficiency, -)
+# Reference: docs/00_strategy.md § Black Hole 1; docs/known_gaps.md#compressor-maps.
+phi,psi,eta
+0.010,0.62,0.55
+0.014,0.70,0.68
+0.018,0.75,0.78
+0.022,0.78,0.84
+0.024,0.78,0.85
+0.026,0.77,0.83
+0.030,0.73,0.78
+0.035,0.66,0.70
+0.040,0.55,0.58

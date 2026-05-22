@@ -1,0 +1,46 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| Extract sharp feature edges from the helical-coil + shell STLs so            |
+| snappyHexMesh can snap mesh nodes onto the tube/shell intersection edges.    |
+|                                                                              |
+| Reference: docs/02_phase2_cfd_rom.md § 2.5 +                                 |
+|            docs/data_extracts/wright2010_sand2010-0171.md "Table 3.2".       |
+|                                                                              |
+| Output:                                                                      |
+|   constant/triSurface/helical_tube.eMesh                                     |
+|   constant/triSurface/chiller_shell.eMesh                                    |
+| referenced from snappyHexMeshDict.castellatedMeshControls.features.          |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      surfaceFeatureExtractDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+helical_tube.stl
+{
+    extractionMethod    extractFromSurface;
+    extractFromSurfaceCoeffs
+    {
+        // 30° captures the tube-end caps and any seam in the swept surface
+        // without picking up curvature noise on the smooth helical body.
+        includedAngle   150;
+    }
+    writeObj            yes;
+}
+
+chiller_shell.stl
+{
+    extractionMethod    extractFromSurface;
+    extractFromSurfaceCoeffs
+    {
+        // The shell is a straight cylinder with two end caps; only the
+        // top/bottom rim edges should be marked as features.
+        includedAngle   150;
+    }
+    writeObj            yes;
+}
+
+// ************************************************************************* //

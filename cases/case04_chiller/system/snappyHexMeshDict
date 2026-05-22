@@ -5,11 +5,15 @@
 | under `constant/triSurface/`:                                               |
 |   helical_tube.stl   — gas-side tube outer wall (38.1 mm OD)                |
 |   chiller_shell.stl  — coaxial shell outer cylinder                         |
+| and the two .eMesh feature files produced by `surfaceFeatureExtract`        |
+| (see system/surfaceFeatureExtractDict).                                     |
 |                                                                             |
 | Reference: docs/02_phase2_cfd_rom.md § 2.5 +                                |
 |            docs/data_extracts/wright2010_sand2010-0171.md "Table 3.2".      |
 |                                                                             |
-| Refinement levels are smoke-test grade — bump (3 4)/(2 3) for production.  |
+| Refinement: production grade — tube_wall (3 4), shell_wall (2 3).           |
+| Surface layers active on the tube wall (boundary-layer resolution on the    |
+| heat-transfer surface). Smoke-test runs can drop layers via Allrun env.     |
 \*---------------------------------------------------------------------------*/
 FoamFile
 {
@@ -22,7 +26,7 @@ FoamFile
 
 castellatedMesh true;
 snap            true;
-addLayers       false;
+addLayers       true;
 
 geometry
 {
@@ -40,22 +44,37 @@ geometry
 
 castellatedMeshControls
 {
-    maxLocalCells       2000000;
-    maxGlobalCells      8000000;
+    maxLocalCells       4000000;
+    maxGlobalCells      16000000;
     minRefinementCells  10;
     nCellsBetweenLevels 3;
     resolveFeatureAngle 30;
-    features            ();
+    features
+    (
+        {
+            file   "helical_tube.eMesh";
+            level  4;
+        }
+        {
+            file   "chiller_shell.eMesh";
+            level  2;
+        }
+    );
     refinementSurfaces
     {
         tube_wall
         {
-            level (2 3);
+            // Production: (3 4) — captures the gas/liquid interface curvature
+            // and matches the dominant heat-transfer surface. Smoke-test
+            // runs may drop to (2 3) if memory-constrained.
+            level (3 4);
             patchInfo { type wall; }
         }
         shell_wall
         {
-            level (1 1);
+            // Shell is a straight cylinder; (2 3) is enough to keep the
+            // outer wall well-resolved without bloating cell count.
+            level (2 3);
             patchInfo { type wall; }
         }
     }
@@ -72,18 +91,25 @@ snapControls
 {
     nSmoothPatch         3;
     tolerance            2.0;
-    nSolveIter           30;
+    nSolveIter           50;
     nRelaxIter           5;
-    nFeatureSnapIter     10;
+    nFeatureSnapIter     15;
+    implicitFeatureSnap  false;
+    explicitFeatureSnap  true;
+    multiRegionFeatureSnap false;
 }
 
 addLayersControls
 {
     relativeSizes        true;
-    layers {}
-    expansionRatio       1.15;
-    finalLayerThickness  0.3;
-    minThickness         0.03;
+    layers
+    {
+        tube_wall { nSurfaceLayers 5; }
+        shell_wall { nSurfaceLayers 2; }
+    }
+    expansionRatio       1.2;
+    finalLayerThickness  0.4;
+    minThickness         0.05;
     nGrow                0;
     featureAngle         60;
     nRelaxIter           5;
@@ -99,7 +125,7 @@ addLayersControls
 
 meshQualityControls
 {
-    maxNonOrtho         60;
+    maxNonOrtho         65;
     maxBoundarySkewness 20;
     maxInternalSkewness 4;
     maxConcave          80;

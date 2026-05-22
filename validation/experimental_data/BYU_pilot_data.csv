@@ -27,6 +27,24 @@
 #     row 5 — Recuperator hot side (state 5' → state 6)
 #   Row 6 covers the cooler/condenser CHX (state 6 → state 1) closing
 #   the loop.
+# - Row 7 (NEW 2026-05-22) is sourced from Table 3, p.6 — the cooler/
+#   condenser (CHX) *hot inlet* at 45.7 °C / 6.27 MPa. This is the
+#   only genuinely new (T, P) inlet state in Table 3: every other
+#   Table 3 boundary (RHX hot-inlet 593 °C / 7.08 MPa = state 5',
+#   RHX cold-inlet 38.6 °C / 20.58 MPa = state 2', CHX hot-outlet
+#   20.0 °C / 6.20 MPa ≈ state 1) duplicates a Table 2 row already
+#   covered above. Table 3 also reports an outlet pressure of
+#   6.27 - 0.07 = 6.20 MPa for the CHX hot side. Source paper does
+#   not tabulate h at this state, so h_inlet_measured_J_kg is left
+#   blank; the density gate also stays skipped (no ρ reported), but
+#   the row carries paper-grade (T, P) for future regression checks
+#   and documents the CHX intermediate state that Table 2 omits.
+# - Table 1 fired-heater design point (415 °C / 20.38 MPa →
+#   600 °C / 19.98 MPa) is intentionally NOT rowed: its inlet (T, P)
+#   duplicates Table 2 state 3, so adding it would double-count the
+#   CoolProp gate at the same state. The slightly different outlet
+#   pressure (19.98 vs Table 2's 19.88 MPa) is a design vs. measured
+#   distinction that does not affect the inlet-keyed validator.
 # - rho_inlet_measured: NOT REPORTED in the source paper. Table 2
 #   tabulates P, T, mdot, h only. Densities can be back-computed via
 #   CoolProp at each (T, P) pair, but doing so makes
@@ -69,3 +87,4 @@ T_inlet_K,P_inlet_Pa,T_outlet_K,P_outlet_Pa,rho_inlet_measured,h_inlet_measured_
 873.15,19580000,866.25,7180000,,1097500,,Held2025_BYU_T2_throttle
 866.15,7080000,353.15,6880000,,1097500,,Held2025_BYU_T2_recup_hot
 353.15,6880000,293.65,6780000,,502300,,Held2025_BYU_T2_chx
+318.85,6270000,293.15,6200000,,,,Held2025_BYU_T3_chx_hot_inlet

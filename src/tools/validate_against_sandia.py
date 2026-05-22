@@ -20,6 +20,12 @@ Two checks are supported via ``--check``:
   coolprop_self_consistency.csv) are skipped with a notice rather than
   erroring, so the same validator step can run across every benchmark file.
 
+``--check`` also accepts a comma-separated list (e.g. ``--check rho,h``).
+Each check is run sequentially against the same CSV; the script exits
+non-zero if *any* check fails. CSVs lacking a check's column are skipped
+(not failed), so a single CI invocation can fan out across mixed-schema
+benchmark files.
+
 The shipping CSVs are still partial — see validation/experimental_data/
 data_sources.md for the transcription rules.
 """
@@ -141,15 +147,37 @@ def _build_argparser() -> argparse.ArgumentParser:
     )
     p.add_argument(
         "--check",
-        choices=sorted(_CHECK_SPECS),
         default="rho",
-        help="Which quantity to validate (default: rho).",
+        help=(
+            "Quantity to validate. Single value (rho|h) or comma-separated "
+            "list (e.g. rho,h). Default: rho."
+        ),
     )
     p.add_argument("--fluid", type=str, default="CO2")
     return p
 
 
+def _parse_checks(spec: str) -> list[str]:
+    checks = [c.strip() for c in spec.split(",") if c.strip()]
+    if not checks:
+        raise SystemExit("--check must name at least one quantity")
+    unknown = [c for c in checks if c not in _CHECK_SPECS]
+    if unknown:
+        raise SystemExit(
+            f"--check: unknown quantity {unknown!r}. "
+            f"Valid: {sorted(_CHECK_SPECS)}"
+        )
+    return checks
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = _build_argparser().parse_args(argv)
+    checks = _parse_checks(args.check)
+    rc = 0
+    for check in checks:
+        rc |= validate(args.data, args.tolerance, args.fluid, check)
+    return rc
+
+
 if __name__ == "__main__":
-    args = _build_argparser().parse_args()
-    rc = validate(args.data, args.tolerance, args.fluid, args.check)
-    sys.exit(rc)
+    sys.exit(main())
