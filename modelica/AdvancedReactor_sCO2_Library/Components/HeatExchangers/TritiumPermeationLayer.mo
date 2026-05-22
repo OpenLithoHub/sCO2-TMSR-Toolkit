@@ -11,6 +11,12 @@ model TritiumPermeationLayer
     "PCHE wall thickness (m)";
 
   // ── Material permeability (Arrhenius form: Φ = Φ₀·exp(−Eₐ/RT)) ──
+  // PLACEHOLDER: defaults below are indicative only — see
+  // docs/known_gaps.md#tritium-constants. Reported Φ₀/Eₐ for Inconel 617
+  // varies by 10×–100× across papers because the surface oxide layer
+  // dominates the result. Bracket the answer rather than trust a single
+  // constant: the full Best/Worst/Custom preset interface is tracked at
+  // docs/known_gaps.md#tritium-constants.
   parameter Real Phi_0 = 2.0e-7
     "Permeability pre-factor Φ₀ (mol·m⁻¹·s⁻¹·Pa⁻⁰·⁵) — material-specific; verify from literature";
   parameter Modelica.Units.SI.MolarEnergy E_a = 45e3

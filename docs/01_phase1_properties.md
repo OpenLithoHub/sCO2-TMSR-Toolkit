@@ -336,7 +336,7 @@ sCO₂ corrosion data is hard to find. **Thermodynamic cycle and compressor test
 - Key series: Wright et al. (2010–2016) — compressor inlet T/P, efficiency measurements
 - **Already on local disk + indexed** (per [`docs/data_extracts/_acquisition_log.md`](data_extracts/_acquisition_log.md)):
   - `Wright2010_SAND2010_0171` — 7 rows already transcribed into `SNL_compressor_data.csv` (Table 2.1, §2.3, §5.3.1, Figures 5-11/5-13).
-  - `Wright2011_SAND2011_7779` — continued-operation follow-up; extract stub created, transcription pending.
+  - `Wright2011_SAND2010_8840` — Modeling and Experimental Results for Condensing sCO₂ Power Cycles, LDRD report; extracted 2026-05-22, Table 2-1 modelled state points + Table 4-1 measured rows pending transcription. (Source previously mis-keyed as `Wright2011_SAND2011_7779`.)
   - `Conboy2014_SAND2014_2098` — later operating-point sweep; extract stub created, transcription pending.
   - These are the next-priority sources to expand `SNL_compressor_data.csv` rows beyond the current 7.
 

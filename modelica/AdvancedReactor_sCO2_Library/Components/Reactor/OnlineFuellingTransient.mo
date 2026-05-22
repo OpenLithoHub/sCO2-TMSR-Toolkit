@@ -6,6 +6,9 @@ model OnlineFuellingTransient
   extends Modelica.Icons.UnderConstruction;
 
   // ── Reactor point-kinetics parameters ──
+  // PLACEHOLDER: every literature-grade default below is an indicative
+  // value for Th-U fuel pending SINAP TMSR-LF1 publication of measured
+  // operating parameters — see docs/known_gaps.md#tmsr-lf1.
   parameter Real beta_eff = 0.003
     "Effective delayed neutron fraction — TMSR Th-U fuel is lower than U-Pu; verify from literature";
   parameter Real Lambda = 1e-4

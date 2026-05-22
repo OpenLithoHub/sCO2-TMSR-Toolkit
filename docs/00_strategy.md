@@ -41,7 +41,7 @@ Four predictable "data black holes" will be hit during execution. Each has a kno
   3. Document loudly: *"Default map is concept-validation only. Component exposes a standard CSV/table input — industrial users plug in their proprietary map."* The win is the ingestion interface, not the default numbers.
 - **Public sources currently indexed** (per [`docs/references.bib`](references.bib) and `docs/data_extracts/`):
   `Wright2010_SAND2010_0171` (design point + Table 5.1 main-compressor wheel geometry; first 7 rows of `SNL_compressor_data.csv`),
-  `Wright2011_SAND2011_7779` (continued-operation follow-up, extract pending),
+  `Wright2011_SAND2010_8840` (LWR-temperature condensing-cycle study, Table 2-1 14 modelled state points + Table 4-1 measured rows; first-pass extracted 2026-05-22),
   `Conboy2014_SAND2014_2098` (later operating-point sweep, extract pending).
   These are the seed for the BYOD default map; treat each as documented placeholder, not ground truth.
 

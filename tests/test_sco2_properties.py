@@ -26,8 +26,14 @@ CP = pytest.importorskip("CoolProp.CoolProp", reason="CoolProp not installed")
 
 SANDIA_BENCHMARK_POINTS: list[tuple[float, float, float, float]] = [
     # (T_K, P_Pa, expected_density_kg_m3, tolerance_pct)
-    # Populate from Wright et al. SNL reports (OSTI public).
-    # Until each row is verified against the original report, skip these tests.
+    # Source: Wright2010_SAND2010_0171, § 2.3 narrative — measured compression-
+    # process densities along the pseudo-critical line. Reported as
+    # 0.608 kg/L (inlet) → 0.670 kg/L (outlet). Section 2.3 wording implies
+    # ±5% measurement uncertainty, which the tolerance reflects.
+    # See validation/experimental_data/SNL_compressor_data.csv row tagged
+    # `Wright2010_SAND_S2.3_pseudocrit` and docs/data_extracts/wright2010_sand2010-0171.md.
+    (305.3, 7.69e6, 608.0, 5.0),    # design-point compressor inlet
+    (324.659, 13.984e6, 670.0, 5.0),  # design-point compressor outlet
 ]
 
 

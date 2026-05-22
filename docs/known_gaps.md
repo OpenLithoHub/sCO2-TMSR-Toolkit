@@ -23,7 +23,7 @@
 **Escape strategy:** BYOD (Bring Your Own Data) interface. Industrial users plug in their proprietary map via CSV.
 **Upstream (already on disk, transcription pending):**
   - `Wright2010_SAND2010_0171` — Table 5.1 main-compressor wheel geometry (used as `Compressor.mo` defaults; see `docs/data_extracts/wright2010_sand2010-0171.md`).
-  - `Wright2011_SAND2011_7779` — continued-operation follow-up (extract stub created; transcribe operating points to expand `SNL_compressor_data.csv`).
+  - `Wright2011_SAND2010_8840` — LWR-temperature condensing-cycle modelling (first-pass extracted 2026-05-22; Table 2-1 14 modelled state points and Table 4-1 measured rows pending transcription).
   - `Conboy2014_SAND2014_2098` — operating-point sweep (extract stub created; transcription pending).
   - `Vrancik1968_NASA_TN_D4849` — primary windage formula (read-through pending; once transcribed, lifts windage cite from C → A confidence).
 **Upstream (blocked / future):** STEP Phase 2 RCBC reports (not yet public).
@@ -55,10 +55,10 @@
 
 ## Gap 4 — Tritium permeation material constants  <a id="tritium-constants"></a>
 
-**Phase:** 3 (`Components/Reactor/TritiumPermeationLayer.mo`).
-**Status:** parameterized, not hard-coded.
+**Phase:** 3 (`Components/HeatExchangers/TritiumPermeationLayer.mo`).
+**Status:** placeholder — single Inconel-617 default exposed as Modelica `parameter` (overridable by user); Best/Worst/Custom preset wrapper not yet implemented.
 **Where it bites:** Reported tritium permeability for Inconel 617 (Φ₀, Eₐ) varies by 10×–100× across papers because surface oxide layers dominate the result.
-**Current placeholder:** the Modelica component exposes `Worst_Case` (no oxide barrier, literature maximum), `Best_Case` (intact oxide, literature minimum), and `Custom` parameter sets. **Defaults are indicative only.**
+**Current placeholder:** the Modelica component exposes `Phi_0` and `E_a` as overridable parameters with Inconel-617 indicative defaults. **Defaults are indicative only.** A future revision will bracket the answer with `Worst_Case` (no oxide barrier, literature maximum) / `Best_Case` (intact oxide, literature minimum) / `Custom` presets per Gap-4 escape strategy.
 **Escape strategy:** the model bounds the answer rather than predicting an absolute number. Output is *"under the worst documented case, accumulation is X; under the best, Y"*.
 **Upstream:** Causey et al., *Tritium Barriers and Permeation*, SAND2008-1141; Forcey et al., *J. Nucl. Mater.* (1988) — Inconel series data.
 
@@ -68,10 +68,10 @@
 
 **Phase:** 1 (CI benchmark).
 **Status:** SNL partially populated (single-pass), STEP placeholder.
-**Where it bites:** the test infrastructure exists (`tests/test_sco2_properties.py`, `src/tools/validate_against_sandia.py`); `validation/experimental_data/SNL_compressor_data.csv` now carries 7 rows transcribed from [`Wright2010_SAND2010_0171`] (see `docs/data_extracts/wright2010_sand2010-0171.md`); `STEP_phase1_data.csv` ships empty (header-only).
+**Where it bites:** the test infrastructure exists (`tests/test_sco2_properties.py`, `src/tools/validate_against_sandia.py`); `validation/experimental_data/SNL_compressor_data.csv` now carries 8 rows transcribed from [`Wright2010_SAND2010_0171`] — 2 with measured density (`Wright2010_SAND_S2.3_pseudocrit` inlet 608 kg/m³ and `Wright2010_SAND_S2.3_outlet` outlet 670 kg/m³) actively gating CoolProp regression at ±5 %, plus 6 (T, P, η) reference rows (see `docs/data_extracts/wright2010_sand2010-0171.md`); `STEP_phase1_data.csv` ships empty (header-only).
 **Current placeholder:** STEP CSV is header-only. `validate_against_sandia.py` exits 0 when no measured rows are found.
 **Escape strategy:** continue transcribing additional public reports per `docs/citation_protocol.md`. Promote SNL rows from single-pass (current) to two-pass before any release tag. Add STEP rows from `Allison2025_STEP_extended` (substitute) immediately, and from the DOE STEP Phase 1 final report when published.
-**Upstream:** `Wright2010_SAND2010_0171` (transcribed); `Wright2011_SAND2011_7779`, `Conboy2014_SAND2014_2098` (on disk, transcription pending); `Allison2025_STEP_extended` — *Extended Duration Operation of a Pilot-Scale sCO₂ Test Loop*, OSTI 2575689, on disk as the cite-of-record substitute until the DOE STEP Phase 1 final report is released. All four entries indexed in `docs/data_extracts/_acquisition_log.md`.
+**Upstream:** `Wright2010_SAND2010_0171` (transcribed); `Wright2011_SAND2010_8840`, `Conboy2014_SAND2014_2098` (on disk, transcription pending); `Allison2025_STEP_extended` — *Extended Duration Operation of a Pilot-Scale sCO₂ Test Loop*, OSTI 2575689, on disk as the cite-of-record substitute until the DOE STEP Phase 1 final report is released. All four entries indexed in `docs/data_extracts/_acquisition_log.md`.
 
 ---
 

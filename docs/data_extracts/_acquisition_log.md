@@ -60,7 +60,7 @@ is set by:
 |---|---|---|---|---|---|---|---|
 | 1 | `SpanWagner1996_CO2_EOS` | Span & Wagner CO₂ reference EOS, *J. Phys. Chem. Ref. Data* 25(6) 1509 | https://doi.org/10.1063/1.555991 | P0 | **blocked** | 2026-05-21 | AIP publisher behind Cloudflare WAF; both direct + proxy return 403. Re-attempt via institutional access or NIST Standard Reference Data instead. |
 | 2 | `Vrancik1968_NASA_TN_D4849` | Prediction of windage power loss in alternators, NASA TN D-4849 | https://ntrs.nasa.gov/citations/19680027690 | P0 | **downloaded** | 2026-05-21 | NTRS direct. 749 KB / 21 pages. EOF verified. |
-| 3 | `Wright2011_SAND2011_7779` | Wright et al., Overview of sCO2 Power Cycle Development at Sandia, SAND2011-7779 | https://www.osti.gov/biblio/1030354 | P0 | **downloaded** | 2026-05-21 | OSTI direct (`/servlets/purl/1030354`). 4.4 MB. Connection-drop required HTTP/1.1 + 600 s timeout. EOF verified. |
+| 3 | `Wright2011_SAND2010_8840` | Wright, Radel, Conboy, Rochau — Modeling and Experimental Results for Condensing sCO2 Power Cycles, SAND2010-8840 | https://www.osti.gov/biblio/1030354 | P0 | **extracted** | 2026-05-22 | OSTI biblio 1030354 in fact dereferences to SAND2010-8840 (Jan 2011 LDRD, condensing cycles for LWRs), not SAND2011-7779 ("Overview…") which was the original mis-keyed entry. PDF on disk; first-pass extract done — see `wright2011_sand2010-8840.md`. |
 | 4 | `Conboy2014_SAND2014_2098` | Conboy et al., Performance Characteristics of an Operating sCO2 Brayton Cycle, SAND2014-2098 | https://www.osti.gov/biblio/1177045 | P0 | **downloaded** | 2026-05-21 | OSTI direct. 2.6 MB. EOF verified. |
 | 5 | `Conboy2012_LDRD_10MWe` | Conboy et al., Modeling of a sCO2 Power Cycle for Nuclear Energy Applications, SAND/LDRD 2012 | search OSTI: `Conboy 10 MWe recompression sCO2` | P1 | **blocked** | 2026-05-21 | No matching OSTI biblio entry found by author/topic search. Likely SNL-internal LDRD that was never publicly released; supersede with Conboy2014 + later post-2018 OSTI biblio (`1574791`, `1543307`) which cover the 10 MWe cycle modeling work. |
 | 6 | `Dostal2004_MIT_PhD` | V. Dostal, A Supercritical CO₂ Cycle for Next Generation Nuclear Reactors, MIT PhD thesis 2004 | https://web.mit.edu/22.33/www/dostal.pdf | P1 | **downloaded** | 2026-05-22 | MIT DSpace canonical (`dspace.mit.edu/handle/1721.1/17746`) returns CloudFront WAF 405 captcha; recovered via `web.mit.edu/22.33/www/dostal.pdf` + local HTTP proxy + curl `-C -` resume. 6.6 MB. EOF verified. |
@@ -157,3 +157,34 @@ Template:
 - **Outcome:** success after 12 attempts. Final size 15 246 152 bytes (= server `Content-Length`), %%EOF present.
 - **Note:** the OSTI server reproducibly drops connections after 1–5 MB even via proxy, but `-C -` (HTTP Range resume) makes progress monotonic.
 - **Next action:** stub `docs/data_extracts/allison2025_step_extended.md` created. STEP Phase 1 final report remains unreleased; this conference paper is the cite-of-record until DOE publishes.
+
+### 2026-05-22 — `Wright2011_SAND2011_7779` → `Wright2011_SAND2010_8840` (source-identity correction)
+
+- **Method:** read-through verification of the PDF cover and metadata,
+  cross-checked against OSTI biblio 1030354.
+- **Command / URL:**
+  `curl -sL "https://www.osti.gov/biblio/1030354" | grep citation_technical_report_number`
+  → `<meta name="citation_technical_report_number" content="SAND2010-8840" />`
+- **Outcome:** the PDF previously logged on 2026-05-21 as
+  `Wright2011_SAND2011_7779` ("Overview of Supercritical CO2 Power
+  Cycle Development at Sandia") is in fact **SAND2010-8840**
+  ("Modeling and Experimental Results for Condensing Supercritical
+  CO2 Power Cycles", S. A. Wright, R. F. Radel, T. M. Conboy, G. E.
+  Rochau, January 2011). The OSTI biblio ID 1030354 was correct on
+  the row; the title/SAND number entered alongside it were wrong —
+  pulled from a different SNL Wright-et-al. report. The previous
+  attempt record (above) is preserved per § 5 ("never edit prior
+  records"); this entry is the correction.
+- **Next action:**
+  - BibTeX key updated `Wright2011_SAND2011_7779` →
+    `Wright2011_SAND2010_8840` in `docs/references.bib`.
+  - Extract stub renamed `wright2011_sand2011-7779.md` →
+    `wright2011_sand2010-8840.md`; first-pass content (Table 2-1,
+    §1.2 fluid densities, §2.2 Table 2-1 14-state-point block, §4 /
+    Table 4-1 pointer, §5 test-results overview) added.
+  - SAND2011-7779 ("Overview…") remains a *separate* candidate
+    source — not yet acquired. Add as a new row to the candidate
+    table when its OSTI ID is determined.
+  - Future acquisitions: `curl … | grep
+    citation_technical_report_number` *before* committing the
+    BibTeX entry. Would have caught the original mis-key in seconds.

@@ -12,9 +12,19 @@
 #   is left blank for those rows. The validator will skip rows missing rho
 #   but still record T/P for downstream regression checks.
 # - Row 4: Section 2.3 narrative, p.20 — measured compression-process
-#   inlet/outlet density (0.608 kg/L -> 0.670 kg/L) along the pseudo-
-#   critical line. P-ratio 1.8, T_inlet ~ 305.3 K (design-point inlet).
-#   Outlet T derived from Table 2.1 design point (T2 = 324.659 K).
+#   inlet density (0.608 kg/L) along the pseudo-critical line.
+#   P-ratio 1.8, T_inlet ~ 305.3 K (design-point inlet). Outlet T
+#   derived from Table 2.1 design point (T2 = 324.659 K).
+# - Row 8 (NEW): Section 2.3 narrative, p.20 — measured compression-
+#   process *outlet* density (0.670 kg/L) at the design-point outlet
+#   state (T = 324.659 K, P = 13.984 MPa from Table 2.1). The §2.3
+#   prose explicitly pairs the inlet 0.608 kg/L with the outlet
+#   0.670 kg/L. The CSV column "T_inlet_K" / "P_inlet_Pa" /
+#   "rho_inlet_measured" is reused here as "(T, P) state at which the
+#   reported density is measured" — that state happens to be the
+#   compressor outlet for this row. Outlet T2/P2 columns are left blank
+#   because the row's (T, P) IS the outlet state. Tag distinguishes
+#   it from row 4.
 # - Row 5: Section 5.3.1, p.54 — spin-test CBC_081202_1003 measured
 #   inlet conditions (304.4 K / 7.536 MPa). Outlet pressure peak 12.1 MPa
 #   reported on the same page.
@@ -46,3 +56,4 @@ T_inlet_K,P_inlet_Pa,T_outlet_K,P_outlet_Pa,rho_inlet_measured,efficiency_measur
 304.4,7536000,,12100000,,,Wright2010_SAND_S5.3.1_CBC081202
 304.1,7377000,,,,,Wright2010_SAND_F5.11_perfmap
 305.0,7690000,323.0,13840000,,,Wright2010_SAND_F5.13_design
+324.659,13984000,,,670.0,,Wright2010_SAND_S2.3_outlet
