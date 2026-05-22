@@ -2,6 +2,12 @@
 | Reference: docs/02_phase2_cfd_rom.md § 2.2 + cases/case02_zigzag_channel/   |
 |            README.md.                                                       |
 |                                                                             |
+| Idealized academic zigzag geometry from highly-cited PCHE papers (Ngo et    |
+| al. 2007, Kim et al. 2014), NOT a vendor channel — see                      |
+| docs/known_gaps.md#pche-geometry. Vendor pitch and angle of attack are      |
+| commercial secrets; the contribution of this benchmark is the reproducible  |
+| pipeline, not channel-shape fidelity.                                       |
+|                                                                             |
 | Skeleton blockMeshDict: a coarse outer block that bounds the zigzag         |
 | channel. The actual zigzag walls are NOT generated here — the geometry is   |
 | introduced as an STL via snappyHexMesh. Until src/tools/cad/zigzag.py emits |

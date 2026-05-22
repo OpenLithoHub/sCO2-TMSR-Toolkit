@@ -91,24 +91,37 @@ else:
 
 ## 4.5 Acceptance criterion
 
-CI fails if any verified row exceeds **5 % relative density error**.
-Tighten the tolerance only after the per-row uncertainty in the source
-report is documented.
+CI gates two checks side by side:
+
+* `--check rho` against `SNL_compressor_data.csv` — fails if any verified
+  row exceeds **5 % relative density error**. Tighten the tolerance only
+  after the per-row uncertainty in the source report is documented.
+* `--check h` against `BYU_pilot_data.csv` — fails if any row exceeds
+  **1 % relative enthalpy error**. The Held2025 paper rounds h to
+  0.1 kJ/kg, so 1 % is conservative; current CoolProp 7.2.0 sits at
+  ≤ 0.012 % across all six rows.
 
 ## 4.6 Once data is verified
 
-When `SNL_compressor_data.csv` (and / or future `STEP_phase1_data.csv`)
-gains additional rows:
+When `SNL_compressor_data.csv` or `BYU_pilot_data.csv` gains additional
+rows (or a future `STEP_phase1_data.csv` is created when the DOE STEP
+Phase 1 final report is released):
 
 1. Move the row from comment-only placeholder lines to active CSV rows
 2. Append a citation block in
    `validation/experimental_data/data_sources.md`
 3. Re-run this notebook locally — the CI step
-   `python src/tools/validate_against_sandia.py` will start asserting
+   `python -m src.tools.validate_against_sandia` (with the appropriate
+   `--check rho|h` and `--data` flags) will start asserting on the new
+   rows. The validator gracefully skips legacy CSVs whose schema
+   predates the requested column.
 
 ## 4.7 References
 
-- Wright, S. A. et al. (2010 et seq.), Sandia Laboratory technical reports
+- Wright, S. A. et al. (2010, 2011), Sandia Laboratory technical reports
   on the sCO₂ test loop — OSTI public collection
-- DOE STEP Demonstration Project — Phase 1 reports (Southwest Research Institute)
+- Held, T. J. et al. (2025), *Extended Duration Operation of a Pilot-Scale
+  sCO₂ Test Loop* — ASME GT2025-152150, BYU/Echogen 1.26 MWth pilot at
+  the San Rafael Energy Research Center (DOE FE award DE-FE0031928)
+- DOE STEP Demonstration Project — Phase 1 final report not yet released
 - See `book/references.bib` for the canonical citation keys

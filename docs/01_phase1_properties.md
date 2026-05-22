@@ -351,23 +351,37 @@ sCO₂ corrosion data is hard to find. **Thermodynamic cycle and compressor test
 
 **Adding a CoolProp regression test against BYU pilot data:**
 
+The shipping repo carries the enthalpy column directly in the CSV and
+gates CI through `validate_against_sandia.py --check h` rather than an
+inline pytest list. Keep the snippet below as a reference for how the
+inline pattern would look; the live pipeline is the validator + CI step.
+
 ```python
 # File: validation/experimental_data/BYU_pilot_data.csv
-# Columns: T_inlet_K, P_inlet_Pa, T_outlet_K, P_outlet_Pa, rho_inlet_measured, efficiency_measured, source_ref
-# Source: Held2025_BYU_pilot (OSTI 2575689). Density column is blank because
-#         the source paper tabulates P / T / mdot / h only. See
+# Columns: T_inlet_K, P_inlet_Pa, T_outlet_K, P_outlet_Pa,
+#          rho_inlet_measured, h_inlet_measured_J_kg,
+#          efficiency_measured, source_ref
+# Source: Held2025_BYU_pilot (OSTI 2575689). rho_inlet_measured is blank
+#         because Table 2 tabulates P / T / mdot / h only; the enthalpy
+#         column is populated and gates CI via --check h. See
 #         docs/data_extracts/held2025_byu_pilot.md § 1.3 for the full
 #         11-state-point table.
 
-# tests/test_sco2_properties.py — extend the benchmark set:
+# Live CI step (.github/workflows/python-tests.yml):
+#   python -m src.tools.validate_against_sandia \
+#       --data validation/experimental_data/BYU_pilot_data.csv \
+#       --check h --tolerance 1.0
+# Validator gracefully skips legacy CSVs without h_inlet_measured_J_kg.
+
+# Reference inline pattern (not used in shipping tests):
 BYU_PILOT_ENTHALPY_POINTS = [
     # (T_K, P_Pa, expected_enthalpy_J_per_kg, tolerance_pct)
     # Verbatim from Held2025_BYU_pilot Table 2, p.4
     (293.65,  6.78e6,  252_500.0, 1.0),  # state 1
-    (311.85, 20.68e6,  273_300.0, 1.0),  # state 2
-    (688.25, 20.38e6,  868_500.0, 1.0),  # state 3
-    (873.15, 19.88e6, 1_097_500.0, 1.0), # state 4
-    (866.25,  7.18e6, 1_097_500.0, 1.0), # state 5
+    (311.75, 20.58e6,  273_300.0, 1.0),  # state 2'
+    (688.15, 20.28e6,  868_500.0, 1.0),  # state 3'
+    (873.15, 19.58e6, 1_097_500.0, 1.0), # state 4'
+    (866.15,  7.08e6, 1_097_500.0, 1.0), # state 5'
     (353.15,  6.88e6,  502_300.0, 1.0),  # state 6
 ]
 
@@ -577,15 +591,16 @@ import pytest
 import CoolProp.CoolProp as CP
 
 # Public data points from Sandia Wright et al. 2010 reports
-# WARNING: the rows below are illustrative placeholders only. CoolProp's current
-# density at these (T, P) differs from these reference values by >5%, so the
-# table must be replaced with verified SNL report values before enabling these
-# tests. Until then, leave the list empty so pytest skips it.
+# Verbatim from Wright2010_SAND2010_0171 § 2.3 narrative — measured
+# compression-process densities along the pseudo-critical line. Source
+# wording implies ±5 % measurement uncertainty, which the tolerance
+# reflects. See validation/experimental_data/SNL_compressor_data.csv
+# for the live row tagged Wright2010_SAND_S2.3_pseudocrit and
+# docs/data_extracts/wright2010_sand2010-0171.md for transcription notes.
 SANDIA_BENCHMARK_POINTS = [
     # (T_K, P_Pa, expected_density_kg_m3, tolerance_pct)
-    # (305.4, 7.69e6, 632.0, 5.0),   # ← verify against original SNL report
-    # (351.2, 20.0e6, 745.5, 5.0),   # ← verify against original SNL report
-    # (773.15, 20.0e6, 142.3, 3.0),  # ← verify against original SNL report
+    (305.3, 7.69e6, 608.0, 5.0),       # design-point compressor inlet
+    (324.659, 13.984e6, 670.0, 5.0),   # design-point compressor outlet
 ]
 
 @pytest.mark.parametrize("T, P, rho_expected, tol_pct", SANDIA_BENCHMARK_POINTS)

@@ -34,8 +34,13 @@
 #   itself), which is meaningless. Left blank intentionally so the
 #   density gate is skipped — matches the same convention used for the
 #   Wright2011_SAND_T2.1_stn1to2_modelled row in SNL_compressor_data.csv.
-#   The (T, P, mdot) state is still logged for downstream cycle-level
-#   Modelica work and an enthalpy-regression validator (TODO).
+# - h_inlet_measured_J_kg: enthalpy at each row's *inlet* state, taken
+#   verbatim from Table 2, p.4 (kJ/kg → J/kg, ×1000). Inlet states map
+#   to row1=state-1, row2=state-2', row3=state-3', row4=state-4',
+#   row5=state-5', row6=state-6. Validator with --check h gates each
+#   row by |CoolProp.PropsSI('H', T, P, CO2) − h_measured| / h_measured.
+#   Confidence A: verbatim Table 2 cell values; tolerance 1.0 % is
+#   conservative because the source rounds h to 0.1 kJ/kg.
 # - efficiency_measured: blank for all rows. Pump efficiency in §2.2
 #   is reported as a 0.8–0.9 range over operating conditions, not a
 #   single design-point value (§ 2.2 narrative, p.5). Adding a
@@ -44,22 +49,23 @@
 #   citation_protocol.md § 4.
 #
 # Confidence: A (verbatim from Table 2 cell values). Tolerance band
-# defaults to ≤ 1 % per the A-grade rule, but since rho_inlet_measured
-# is blank the validator simply records the (T, P) state without
-# enforcing a density-error gate.
+# defaults to ≤ 1 % per the A-grade rule. rho_inlet_measured is blank
+# (not reported), so the density gate is skipped; h_inlet_measured_J_kg
+# IS populated so the enthalpy gate (--check h) actively runs in CI.
 #
 # Columns:
-#   T_inlet_K            : Component inlet temperature (K), converted from °C
-#   P_inlet_Pa           : Component inlet pressure (Pa), converted from MPa
-#   T_outlet_K           : Component outlet temperature (K)
-#   P_outlet_Pa          : Component outlet pressure (Pa)
-#   rho_inlet_measured   : Reported inlet density (kg/m^3) — blank: not reported
-#   efficiency_measured  : Reported isentropic efficiency (0-1) — blank: range only
-#   source_ref           : Citation key — see ../../docs/data_extracts/held2025_byu_pilot.md
-T_inlet_K,P_inlet_Pa,T_outlet_K,P_outlet_Pa,rho_inlet_measured,efficiency_measured,source_ref
-293.65,6780000,311.85,20680000,,,Held2025_BYU_T2_pump
-311.75,20580000,688.25,20380000,,,Held2025_BYU_T2_recup_cold
-688.15,20280000,873.15,19880000,,,Held2025_BYU_T2_phx
-873.15,19580000,866.25,7180000,,,Held2025_BYU_T2_throttle
-866.15,7080000,353.15,6880000,,,Held2025_BYU_T2_recup_hot
-353.15,6880000,293.65,6780000,,,Held2025_BYU_T2_chx
+#   T_inlet_K              : Component inlet temperature (K), converted from °C
+#   P_inlet_Pa             : Component inlet pressure (Pa), converted from MPa
+#   T_outlet_K             : Component outlet temperature (K)
+#   P_outlet_Pa            : Component outlet pressure (Pa)
+#   rho_inlet_measured     : Reported inlet density (kg/m^3) — blank: not reported
+#   h_inlet_measured_J_kg  : Reported inlet enthalpy (J/kg), Table 2 col h, ×1000
+#   efficiency_measured    : Reported isentropic efficiency (0-1) — blank: range only
+#   source_ref             : Citation key — see ../../docs/data_extracts/held2025_byu_pilot.md
+T_inlet_K,P_inlet_Pa,T_outlet_K,P_outlet_Pa,rho_inlet_measured,h_inlet_measured_J_kg,efficiency_measured,source_ref
+293.65,6780000,311.85,20680000,,252500,,Held2025_BYU_T2_pump
+311.75,20580000,688.25,20380000,,273300,,Held2025_BYU_T2_recup_cold
+688.15,20280000,873.15,19880000,,868500,,Held2025_BYU_T2_phx
+873.15,19580000,866.25,7180000,,1097500,,Held2025_BYU_T2_throttle
+866.15,7080000,353.15,6880000,,1097500,,Held2025_BYU_T2_recup_hot
+353.15,6880000,293.65,6780000,,502300,,Held2025_BYU_T2_chx

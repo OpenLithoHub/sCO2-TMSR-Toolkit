@@ -3,6 +3,11 @@
 | One staggered row of NACA-like fins inside a rectangular channel; the fin   |
 | body itself is supplied as `constant/triSurface/airfoil_fins.stl`           |
 | produced by `tools/cad/airfoil_fin.py` (TODO).                              |
+|                                                                             |
+| Idealized academic airfoil-fin geometry, NOT a vendor PCHE channel — see    |
+| docs/known_gaps.md#pche-geometry. Vendor airfoil-fin pitch and angle of     |
+| attack are commercial secrets; the contribution of this benchmark is the    |
+| reproducible pipeline, not channel-shape fidelity.                          |
 \*---------------------------------------------------------------------------*/
 FoamFile
 {

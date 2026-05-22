@@ -94,10 +94,12 @@ Held et al. 2025 (ASME GT2025-152150) Table 2:
 > acquisition log for full history.
 
 `rho_inlet_measured` is blank for every row because Held Table 2
-tabulates P / T / mdot / h only, not ρ. Independent transcription
-confidence comes from cross-checking CoolProp's enthalpy call at
-each (T, P) against the paper's tabulated h: agreement is within
-0.03 % across all 10 state points (verified single-pass 2026-05-22).
+tabulates P / T / mdot / h only, not ρ. The `h_inlet_measured_J_kg`
+column carries the Table 2 enthalpy values verbatim (kJ/kg → J/kg) and
+actively gates CI via
+`python -m src.tools.validate_against_sandia --check h --tolerance 1.0`.
+Current CoolProp 7.2.0 sits at ≤ 0.012 % relative error across all six
+rows.
 
 ---
 

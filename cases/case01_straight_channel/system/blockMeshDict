@@ -1,6 +1,11 @@
 /*--------------------------------*- C++ -*----------------------------------*\
 | Reference: docs/02_phase2_cfd_rom.md § 2.4                                  |
 | 2 mm equivalent diameter, 50 mm length straight channel                     |
+|                                                                             |
+| Idealized academic geometry, NOT a vendor PCHE channel — see                |
+| docs/known_gaps.md#pche-geometry. Real Heatric / Vacuum Process Engineering |
+| channel pitch and angle of attack are commercial secrets; the contribution  |
+| of this benchmark is the reproducible pipeline, not channel-shape fidelity. |
 \*---------------------------------------------------------------------------*/
 FoamFile
 {

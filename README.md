@@ -107,11 +107,25 @@ sCO2-TMSR-Toolkit/
 │
 ├── validation/                  # Experimental benchmark data
 │   └── experimental_data/
-│       ├── SNL_compressor_data.csv
+│       ├── SNL_compressor_data.csv         # Wright2010 + Wright2011 SNL rows (gates --check rho)
+│       ├── BYU_pilot_data.csv              # Held2025 BYU/Echogen pilot Table 2 (gates --check h)
+│       ├── coolprop_self_consistency.csv   # auto-generated self-regression rows
+│       ├── Kim2016_PCHE.csv                # PCHE benchmark seed
 │       └── data_sources.md
+│   └── failure_envelopes/                  # CoolProp HEOS mixture failure maps (Gap 3)
+│       ├── co2_he_{1,3,5}pct.{png,csv}
+│       ├── co2_h2o_{0p5,1,2}pct.{png,csv}
+│       └── regenerate_all.sh
 │
-├── tests/                       # Automated tests
-│   └── test_sco2_properties.py
+├── tests/                       # Automated tests (~100 cases)
+│   ├── test_sco2_properties.py
+│   ├── test_cycle.py
+│   ├── test_failure_envelope.py
+│   ├── test_modelica_structure.py
+│   ├── test_postprocessing.py
+│   ├── test_rom_pipeline.py
+│   ├── test_warnings.py
+│   └── test_zigzag_cad.py
 │
 ├── book/                        # Jupyter Book living documentation
 │
@@ -160,7 +174,10 @@ The `docs/` directory contains the full engineering implementation manual, split
 | `Components/HeatExchangers/IntermediateHeatExchanger.mo` | ✅ NTU-effectiveness | design-point Cp values |
 | `Components/HeatExchangers/PCHE.mo` | ✅ NTU + ROM switch + ASME warning | § 3.3 + § 3.6 |
 | `Components/HeatExchangers/TritiumPermeationLayer.mo` | ✅ Sieverts + Arrhenius (steady) | § 3.5 |
-| `Components/Turbomachinery/{Compressor, ReCompressor, Turbine}.mo` | ✅ isentropic-efficiency | |
+| `Components/Turbomachinery/Compressor.mo` | ✅ isentropic-efficiency + BYOD CSV interface | scalar defaults are engineering-typical (η=0.85, ṁ=100 kg/s, PR=2.5), not source-anchored — see docs/known_gaps.md#compressor-maps |
+| `Components/Turbomachinery/ReCompressor.mo` | ✅ extends Compressor (η=0.83) | inherits BYOD interface |
+| `Components/Turbomachinery/Turbine.mo` | ✅ isentropic-efficiency + symmetric BYOD CSV interface | scalar default η=0.90 |
+| `Components/Turbomachinery/LabyrinthSeal.mo` | ✅ Egli leakage correlation | defaults from Wright2010 §5.5 / Table 5.3 |
 | `Components/Reactor/MoltenSaltReactor.mo` | ✅ lumped thermal-hydraulic | |
 | `Components/Reactor/ReactorPowerControl.mo` | ✅ PI controller | |
 | `Components/Reactor/OnlineFuellingTransient.mo` | ✅ point-kinetics, 6-group | § 3.7; default β_i / λ_i are U-235 thermal — replace with Th-U |
@@ -178,9 +195,11 @@ service accounts:
 
 - **Zenodo DOI** — manual deposit per release (`docs/00 § Sustainability`)
 - **JOSS submission** — after the v1.0 milestone with quantitative validation
-- **OSTI Sandia compressor / STEP Phase 1 benchmark data** — must be transcribed
-  from public DOE reports into `validation/experimental_data/*.csv`. Pipelines
-  in place; tests skip cleanly when CSV rows are absent.
+- **OSTI Sandia / BYU pilot benchmark data** — Wright2010 + Wright2011 transcribed
+  into `SNL_compressor_data.csv` (gates `--check rho`); Held2025 BYU/Echogen
+  pilot transcribed into `BYU_pilot_data.csv` with enthalpy actively gating
+  CI (`--check h`). DOE STEP Phase 1 final report still unreleased; see
+  `docs/known_gaps.md#snl-step-rows`.
 - **Streamlit Cloud deployment** — push `app/streamlit_app.py` after a project
   is created on share.streamlit.io
 - **OpenFOAM CFD runs** for `cases/case01..03` — needs an OpenFOAM 11 environment
@@ -189,7 +208,7 @@ service accounts:
 ### Test status
 
 ```
-tests/ — 10 passed, 2 skipped (skips: SNL/STEP CSVs not yet populated)
+tests/ — 101 passed, 1 skipped (STEP Phase 1 CSV not yet released)
 ```
 
 Full milestone timeline with month-by-month checkpoints: [docs/00_strategy.md](docs/00_strategy.md#milestone-timeline)
@@ -244,5 +263,8 @@ If this toolkit contributes to your research, please cite the Zenodo archive:
 ## Acknowledgements
 
 This toolkit builds on the CoolProp, OpenFOAM, and OpenModelica open-source communities.
-Experimental validation data sourced from Sandia National Laboratories public OSTI reports
-and the DOE STEP demonstration project public releases.
+Experimental validation data sourced from Sandia National Laboratories public OSTI
+reports (Wright et al. 2010 SAND2010-0171, Wright et al. 2011 SAND2010-8840), the
+BYU/Echogen 1.26 MWth pilot at the San Rafael Energy Research Center (Held et al.
+2025, DOE FE award DE-FE0031928), and the DOE STEP demonstration project public
+releases.

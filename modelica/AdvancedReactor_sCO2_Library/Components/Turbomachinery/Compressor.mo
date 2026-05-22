@@ -3,13 +3,18 @@ model Compressor
   "Adiabatic main compressor — isentropic-efficiency model with optional BYOD off-design map.
    Reference: docs/03_phase3_modelica.md § 3.2 + docs/00 § Black Hole 1 (BYOD interface)."
 
-  // ── Design-point parameters (Sandia SNL public single-point baseline) ──
+  // ── Design-point parameters ──
+  // PLACEHOLDER: scalar performance defaults are engineering-typical values,
+  // not page-anchored extractions. Wright2010 SAND2010-0171 Table 5.1
+  // (main-compressor wheel geometry: r_tip, b₂, β₂b, design speed/flow)
+  // is reserved as a future geometry-default upgrade — see
+  // docs/known_gaps.md#compressor-maps and docs/03_phase3_modelica.md § 3.2.1.
   parameter Real eta_isen_design = 0.85
-    "Design-point isentropic efficiency (-) — SNL Wright et al. baseline";
+    "Design-point isentropic efficiency (-) — engineering-typical value, not source-anchored";
   parameter Modelica.Units.SI.MassFlowRate mdot_design = 100
-    "Design-point mass flow (kg/s)";
+    "Design-point mass flow (kg/s) — engineering-typical value, not source-anchored";
   parameter Real PR_design = 2.5
-    "Design-point pressure ratio (-)";
+    "Design-point pressure ratio (-) — engineering-typical value, not source-anchored";
 
   // ── BYOD (Bring Your Own Data) off-design map interface ──
   // Industrial users plug in proprietary maps via CSV.
