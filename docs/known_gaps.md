@@ -17,15 +17,15 @@
 ## Gap 1 — sCO₂ compressor / turbine performance maps  <a id="compressor-maps"></a>
 
 **Phase:** 3 (Modelica turbomachinery)
-**Status:** placeholder.
+**Status:** placeholder; wheel-geometry block + Vrancik windage closure now source-anchored in `Compressor.mo` (2026-05-22).
 **Where it bites:** Modelica turbomachinery components require multidimensional flow-pressure-efficiency-speed maps. Complete maps from Barber-Nichols, Dresser-Rand, Hanwha PSM are commercial secrets.
-**Current placeholder:** `Components/Turbomachinery/{Compressor,ReCompressor,Turbine}.mo` exposes scalar isentropic-efficiency defaults plus a symmetric BYOD interface (`useExternalMap` / `mapFileName` parameters; CSV columns `phi, psi, eta`). The defaults are engineering-typical values (Compressor: η=0.85 / ṁ=100 kg/s / PR=2.5; ReCompressor: η=0.83 via inheritance; Turbine: η=0.90) and are explicitly tagged "not source-anchored" in the .mo headers — they are **concept-validation only**. The off-design table-lookup body is still a future deliverable; today the components fall back to the constant `eta_isen_design`.
+**Current placeholder:** `Components/Turbomachinery/{Compressor,ReCompressor,Turbine}.mo` exposes scalar isentropic-efficiency defaults plus a symmetric BYOD interface (`useExternalMap` / `mapFileName` parameters; CSV columns `phi, psi, eta`). The scalar performance defaults are engineering-typical (Compressor: η=0.85 / ṁ=100 kg/s / PR=2.5; ReCompressor: η=0.83 via inheritance; Turbine: η=0.90) and are explicitly tagged "not source-anchored" in the .mo headers — they are **concept-validation only**. The off-design table-lookup body is still a future deliverable; today the components fall back to the constant `eta_isen_design`. **Wheel geometry block (r_tip, b₂, β₂b, Z_r, blade thickness, r_s1, r_h1, β₁bt, α₂, tip clearance, ω_design) in `Compressor.mo` is now Confidence-A from Wright2010 SAND2010-0171 Table 5.1 (transcribed 2026-05-22 verbatim from p.54).** **Rotor-windage equation (Vrancik 1968 Eq. 5 with Re-dependent C_d closure, Confidence A) is wired into `Compressor.mo` as opt-in via `enable_windage`; defaults `C_d=0.03` (mid-range of Vrancik's Re=10⁴–10⁸ band) and laminar `C_d=2/Re` fallback exposed.** ReCompressor inherits both blocks; Turbine retains scalar defaults only (windage is rotor-loss specific to compressor/alternator side per Wright2010 §5.4).
 **Escape strategy:** BYOD (Bring Your Own Data) interface. Industrial users plug in their proprietary map via CSV.
-**Upstream (already on disk, not yet consumed by `.mo` defaults):**
-  - `Wright2010_SAND2010_0171` — Table 5.1 main-compressor wheel geometry (r_tip, b₂, β₂b, design speed/flow). Reserved as a planned geometry-default upgrade for `Compressor.mo`; **not yet wired** into the component defaults. See `docs/data_extracts/wright2010_sand2010-0171.md`.
-  - `Wright2011_SAND2010_8840` — LWR-temperature condensing-cycle modelling (extracted 2026-05-22; Table 2-1 8 rho-gating + 5 excluded modelled rows and Table 4-1 2 measured pairs transcribed into `SNL_compressor_data.csv`).
+**Upstream (consumed by `.mo` defaults):**
+  - `Wright2010_SAND2010_0171` Table 5.1 — main-compressor wheel geometry (r_tip 18.7 mm, b₂ 1.71 mm, β₂b −50°, Z_r=12, tip clearance 0.254 mm, etc.). Now wired as `Compressor.mo` named parameters (2026-05-22). See `docs/data_extracts/wright2010_sand2010-0171.md` "Table 5.1 main-compressor wheel".
+  - `Wright2011_SAND2010_8840` — LWR-temperature condensing-cycle modelling (extracted 2026-05-22; Table 2-1 8 rho-gating + 5 excluded modelled rows and Table 4-1 2 measured pairs transcribed into `SNL_compressor_data.csv`). Not yet consumed by `.mo` component defaults.
   - ~~`Conboy2014_SAND2014_2098`~~ — **retired 2026-05-22**: source-identity error (PDF at OSTI 1177045 is SAND2014-3136 wind-turbine report by Resor et al., not the Conboy/Wright/Pasch sCO₂ paper). See `docs/data_extracts/conboy2014_sand2014-2098.md`.
-  - `Vrancik1968_NASA_TN_D4849` — primary windage formula `P_windage = π·C_d(Re)·ρ·r⁴·ω³·L_r` (Eq. 5–6, 7 % experimental error). Read-through complete 2026-05-22; windage cite upgraded C → A confidence. **Equation not yet implemented in `Compressor.mo`** — reserved for future deliverable.
+  - `Vrancik1968_NASA_TN_D4849` — windage formula `P_windage = π·C_d(Re)·ρ·r⁴·ω³·L_r` (Eq. 5–6, 7 % experimental error). Read-through complete 2026-05-22. Equation now implemented in `Compressor.mo` as opt-in branch (`enable_windage`); ReCompressor inherits via `extends`.
 **Upstream (blocked / future):** STEP Phase 2 RCBC reports (not yet public).
 
 ---
@@ -33,12 +33,12 @@
 ## Gap 2 — Real PCHE micro-channel geometry & high-fidelity heat-transfer data  <a id="pche-geometry"></a>
 
 **Phase:** 2 (OpenFOAM benchmark cases, ROM training).
-**Status:** placeholder.
+**Status:** placeholder; `case04_chiller` engineering-scale scaffold staged 2026-05-22 (straight-tube placeholder; helical-coil mesh still TODO).
 **Where it bites:** Optimal airfoil-fin pitch and angle of attack are vendor-confidential (Heatric, Vacuum Process Engineering). Experimental Nu data at 700 °C / 20 MPa is sparse and contradictory.
-**Current placeholder:** `cases/case0{1,2,3}_*/system/blockMeshDict` use idealized geometries from highly-cited public papers (Ngo et al., Kim et al.). Vendor comparison is explicitly out of scope.
+**Current placeholder:** `cases/case0{1,2,3}_*/system/blockMeshDict` use idealized geometries from highly-cited public papers (Ngo et al., Kim et al.). Vendor comparison is explicitly out of scope. `cases/case04_chiller/` scaffold added 2026-05-22 with the SNL 10 MWe gas-chiller geometry from Wright2010 SAND2010-0171 Table 3.2 (Confidence A: tube ID 33.3 mm, single-coil length 19.15 m); current `blockMeshDict` is a straight-tube approximation pending a helical-coil CAD generator. See `cases/case04_chiller/README.md` "What still needs doing".
 **Escape strategy:** ship the end-to-end automated pipeline (geometry generation → mesh → CFD run → Nu correlation extraction). The pipeline is the contribution; users with confidential geometry can swap inputs and re-run.
 **Upstream (blocked):** `Kim2014_NED_PCHE` and `Ngo2007_ETFS_PCHE` — both Elsevier paywalled (per `docs/data_extracts/_acquisition_log.md`); landing pages reachable, full text not. Geometry references continue from author-webpage abstracts and prior secondary citations until institutional access is arranged.
-**Upstream (on disk, alternate):** `Wright2010_SAND2010_0171` Table 3.2 — engineering-scale gas-chiller coil geometry (tube OD 38.1 mm / wall 2.4 mm / coil 19.15 m). Reserved for a future `case04_chiller` benchmark beside the academic-paper geometries.
+**Upstream (on disk, alternate):** `Wright2010_SAND2010_0171` Table 3.2 — engineering-scale gas-chiller coil geometry (tube OD 38.1 mm / wall 2.4 mm / coil 19.15 m). Now consumed by `cases/case04_chiller/` scaffold (straight-tube approximation). Helical-coil mesh + gas/liquid patch split is the next deliverable for this case.
 
 ---
 
