@@ -341,34 +341,41 @@ sCO₂ corrosion data is hard to find. **Thermodynamic cycle and compressor test
   - These are the next-priority sources to expand `SNL_compressor_data.csv` rows beyond the current 7.
 
 **STEP Demonstration Project (v1.4 update)**
-- DOE-funded 10 MWe sCO₂ demonstration project
-- **Phase 1 (simple cycle, ~500 °C):** operating data publicly released — use as an additional validation source alongside Sandia
+- DOE-funded 10 MWe sCO₂ demonstration project (Southwest Research Institute)
+- **Phase 1 (simple cycle, ~500 °C):** final report not yet released publicly as of 2026-05-22
 - **Phase 2 (RCBC, ~715 °C):** in progress as of 2025; data expected upon completion
 - Search: `STEP sCO2 demonstration project DOE Southwest Research Institute`
 - Do not cite "715 °C RCBC operating data" as publicly available — it is not yet
-- **Substitute citation until DOE STEP Phase 1 final report is released**:
-  `Allison2025_STEP_extended` — *Extended Duration Operation of a Pilot-Scale sCO₂ Test Loop*, OSTI 2575689. PDF on local disk; extract stub at [`docs/data_extracts/allison2025_step_extended.md`](data_extracts/allison2025_step_extended.md).
+- **Distinct adjacent BYU/Echogen pilot data is in repo (NOT a STEP substitute)**:
+  `Held2025_BYU_pilot` — *Extended Duration Operation of a Pilot-Scale sCO₂ Test Loop*, ASME GT2025-152150 (OSTI 2575689). Transcribed at `validation/experimental_data/BYU_pilot_data.csv`; extract at [`docs/data_extracts/held2025_byu_pilot.md`](data_extracts/held2025_byu_pilot.md). This is the BYU/Echogen 1.26 MWth pilot at the San Rafael Energy Research Center (DOE FE award DE-FE0031928), which is a *different* DOE-funded sCO₂ pilot project from STEP — not a substitute for the unreleased STEP Phase 1 final report.
 
-**Adding STEP Phase 1 to CI:**
+**Adding a CoolProp regression test against BYU pilot data:**
 
 ```python
-# File: validation/experimental_data/STEP_phase1_data.csv
-# Columns: T_inlet_K, P_inlet_Pa, T_outlet_K, P_outlet_Pa, efficiency_measured
-# Source: Allison2025_STEP_extended (OSTI 2575689) — substitute until DOE
-#         STEP Phase 1 final report is released. See
-#         docs/data_extracts/allison2025_step_extended.md for locator notes.
+# File: validation/experimental_data/BYU_pilot_data.csv
+# Columns: T_inlet_K, P_inlet_Pa, T_outlet_K, P_outlet_Pa, rho_inlet_measured, efficiency_measured, source_ref
+# Source: Held2025_BYU_pilot (OSTI 2575689). Density column is blank because
+#         the source paper tabulates P / T / mdot / h only. See
+#         docs/data_extracts/held2025_byu_pilot.md § 1.3 for the full
+#         11-state-point table.
 
 # tests/test_sco2_properties.py — extend the benchmark set:
-STEP_PHASE1_POINTS = [
-    # (T_K, P_Pa, expected_density_kg_m3, tolerance_pct)
-    # Fill from STEP Phase 1 public report — verify values before committing
+BYU_PILOT_ENTHALPY_POINTS = [
+    # (T_K, P_Pa, expected_enthalpy_J_per_kg, tolerance_pct)
+    # Verbatim from Held2025_BYU_pilot Table 2, p.4
+    (293.65,  6.78e6,  252_500.0, 1.0),  # state 1
+    (311.85, 20.68e6,  273_300.0, 1.0),  # state 2
+    (688.25, 20.38e6,  868_500.0, 1.0),  # state 3
+    (873.15, 19.88e6, 1_097_500.0, 1.0), # state 4
+    (866.25,  7.18e6, 1_097_500.0, 1.0), # state 5
+    (353.15,  6.88e6,  502_300.0, 1.0),  # state 6
 ]
 
-@pytest.mark.parametrize("T, P, rho_expected, tol_pct", STEP_PHASE1_POINTS)
-def test_density_against_step_phase1(T, P, rho_expected, tol_pct):
-    """Density vs. STEP Phase 1 public data (simple cycle, ~500 °C)."""
-    rho_calc = CP.PropsSI('D', 'T', T, 'P', P, 'CO2')
-    rel_err = abs(rho_calc - rho_expected) / rho_expected * 100
+@pytest.mark.parametrize("T, P, h_expected, tol_pct", BYU_PILOT_ENTHALPY_POINTS)
+def test_enthalpy_against_byu_pilot(T, P, h_expected, tol_pct):
+    """Enthalpy vs. Held2025_BYU_pilot Table 2 (1.26 MWth pilot, 20–600 °C, 7–21 MPa)."""
+    h_calc = CP.PropsSI('H', 'T', T, 'P', P, 'CO2')
+    rel_err = abs(h_calc - h_expected) / h_expected * 100
     assert rel_err < tol_pct
 ```
 

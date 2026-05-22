@@ -21,20 +21,32 @@ been compared against. Sandia National Laboratories (SNL) operated the
 world's first sCO₂ test loop (~10 MWe) and published compressor inlet/
 outlet measurements in OSTI public reports (Wright et al., 2010–2016).
 
-The DOE STEP Phase 1 demonstration project added a second public source
-(simple cycle, ~500 °C); STEP Phase 2 (RCBC, ~715 °C) data is *not* yet
-public as of 2026.
+The DOE STEP Phase 1 demonstration project (10 MWe class, Southwest
+Research Institute) is positioned as a future second public source;
+its final report is not yet released as of 2026. STEP Phase 2 (RCBC,
+~715 °C) data is *not* yet public.
+
+A separate, smaller pilot programme — the BYU/Echogen 1.26 MWth loop
+at the San Rafael Energy Research Center, DOE FE award DE-FE0031928 —
+is now indexed in this repo (`BYU_pilot_data.csv`, source
+`Held2025_BYU_pilot`) and exercises CoolProp enthalpy across a wider
+T window (20–600 °C) than the SNL data alone covers.
 
 This notebook is the public-facing place where the project's
 "compared-against-experiment" evidence lives.
 
 ## 4.2 Status
 
-> **Current status:** the SNL/STEP CSVs in
-> `validation/experimental_data/` are placeholders. Until each row is
-> transcribed from the original OSTI / DOE report and checked against the
-> source by a named reviewer, **this notebook only exercises the
-> pipeline**, not the validation claim.
+> **Current status:** the SNL CSV in
+> `validation/experimental_data/SNL_compressor_data.csv` ships with 9
+> single-pass transcribed rows (8 from Wright2010 SAND2010-0171 + 1
+> modelled pair from Wright2011 SAND2010-8840). The BYU pilot CSV
+> (`BYU_pilot_data.csv`) ships with 6 component-pair rows from
+> Held2025 Table 2; CoolProp enthalpy agrees with the paper's
+> tabulated h to ≤ 0.03 % at all 10 state points (cross-check
+> documented in `docs/data_extracts/held2025_byu_pilot.md`).
+> No STEP Phase 1 / Phase 2 rows are present — the final report is
+> not yet released.
 
 This is the same caution policy applied in `tests/test_sco2_properties.py`
 (see the `pytest.mark.skipif` guards) and `src/tools/validate_against_sandia.py`.
@@ -85,8 +97,8 @@ report is documented.
 
 ## 4.6 Once data is verified
 
-When `SNL_compressor_data.csv` (and / or `STEP_phase1_data.csv`) is
-populated:
+When `SNL_compressor_data.csv` (and / or future `STEP_phase1_data.csv`)
+gains additional rows:
 
 1. Move the row from comment-only placeholder lines to active CSV rows
 2. Append a citation block in

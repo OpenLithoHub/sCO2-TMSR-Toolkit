@@ -254,7 +254,7 @@ for i in {1..15}; do
        "<canonical_url>"
 done
 ```
-Proven on `Allison2025_STEP_extended` (12 attempts, 15.2 MB) and `Dostal2004_MIT_PhD` (next-day retry after rate-limit cleared).
+Proven on `Held2025_BYU_pilot` (12 attempts, 15.2 MB; was originally logged as `Allison2025_STEP_extended` before source-identity correction) and `Dostal2004_MIT_PhD` (next-day retry after rate-limit cleared).
 
 **MIT DSpace (dspace.mit.edu) — bypass CloudFront WAF:**
 DSpace canonical URLs return HTTP/2 405 captcha pages. Try the author webpage URL instead:

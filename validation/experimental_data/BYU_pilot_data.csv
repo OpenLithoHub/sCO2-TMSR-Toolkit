@@ -1,0 +1,65 @@
+# BYU/Echogen 1.26 MWth pilot-scale sCO2 test loop — Held et al. 2025.
+#
+# SOURCE: T. J. Held et al., "Extended Duration Operation of a Pilot-Scale
+#   Supercritical CO2 Test Loop", ASME Turbo Expo 2025, GT2025-152150,
+#   Memphis TN, June 2025. DOE FE award DE-FE0031928.
+#   OSTI biblio 2575689.
+#
+# IMPORTANT: this CSV used to be `STEP_phase1_data.csv` and was logged
+# as a substitute for the unreleased DOE STEP Phase 1 final report.
+# Source-identity correction (2026-05-22): the underlying paper is the
+# *BYU/Echogen* 1.26 MWth pilot at the San Rafael Energy Research
+# Center, NOT the STEP project (Southwest Research Institute–led
+# 10 MWe demonstration). The two are different DOE-funded sCO2 pilots.
+# See docs/data_extracts/held2025_byu_pilot.md for the full extract.
+# The original STEP_phase1_data.csv has been retired (header-only file
+# was renamed to this BYU file rather than left as a hollow placeholder).
+#
+# TRANSCRIPTION NOTES:
+# - Rows 1-5 cover the simple recuperated cycle's component pairs from
+#   Table 2, p.4 of the source paper. Each row gives the upstream
+#   (unprimed) state as the "inlet" and the downstream component-exit
+#   (primed or next-numbered) state as the "outlet":
+#     row 1 — Pump (state 1 → state 2)
+#     row 2 — Recuperator cold side (state 2' → state 3)
+#     row 3 — Fired heater PHX (state 3' → state 4)
+#     row 4 — Throttle valve (state 4' → state 5)
+#     row 5 — Recuperator hot side (state 5' → state 6)
+#   Row 6 covers the cooler/condenser CHX (state 6 → state 1) closing
+#   the loop.
+# - rho_inlet_measured: NOT REPORTED in the source paper. Table 2
+#   tabulates P, T, mdot, h only. Densities can be back-computed via
+#   CoolProp at each (T, P) pair, but doing so makes
+#   `validate_against_sandia.py` self-validating (CoolProp checks
+#   itself), which is meaningless. Left blank intentionally so the
+#   density gate is skipped — matches the same convention used for the
+#   Wright2011_SAND_T2.1_stn1to2_modelled row in SNL_compressor_data.csv.
+#   The (T, P, mdot) state is still logged for downstream cycle-level
+#   Modelica work and an enthalpy-regression validator (TODO).
+# - efficiency_measured: blank for all rows. Pump efficiency in §2.2
+#   is reported as a 0.8–0.9 range over operating conditions, not a
+#   single design-point value (§ 2.2 narrative, p.5). Adding a
+#   midpoint here would over-claim precision.
+# - source_ref: short form `Held2025_BYU_T2_<segment>` per
+#   citation_protocol.md § 4.
+#
+# Confidence: A (verbatim from Table 2 cell values). Tolerance band
+# defaults to ≤ 1 % per the A-grade rule, but since rho_inlet_measured
+# is blank the validator simply records the (T, P) state without
+# enforcing a density-error gate.
+#
+# Columns:
+#   T_inlet_K            : Component inlet temperature (K), converted from °C
+#   P_inlet_Pa           : Component inlet pressure (Pa), converted from MPa
+#   T_outlet_K           : Component outlet temperature (K)
+#   P_outlet_Pa          : Component outlet pressure (Pa)
+#   rho_inlet_measured   : Reported inlet density (kg/m^3) — blank: not reported
+#   efficiency_measured  : Reported isentropic efficiency (0-1) — blank: range only
+#   source_ref           : Citation key — see ../../docs/data_extracts/held2025_byu_pilot.md
+T_inlet_K,P_inlet_Pa,T_outlet_K,P_outlet_Pa,rho_inlet_measured,efficiency_measured,source_ref
+293.65,6780000,311.85,20680000,,,Held2025_BYU_T2_pump
+311.75,20580000,688.25,20380000,,,Held2025_BYU_T2_recup_cold
+688.15,20280000,873.15,19880000,,,Held2025_BYU_T2_phx
+873.15,19580000,866.25,7180000,,,Held2025_BYU_T2_throttle
+866.15,7080000,353.15,6880000,,,Held2025_BYU_T2_recup_hot
+353.15,6880000,293.65,6780000,,,Held2025_BYU_T2_chx

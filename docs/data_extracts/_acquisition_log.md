@@ -65,7 +65,7 @@ is set by:
 | 5 | `Conboy2012_LDRD_10MWe` | Conboy et al., Modeling of a sCO2 Power Cycle for Nuclear Energy Applications, SAND/LDRD 2012 | search OSTI: `Conboy 10 MWe recompression sCO2` | P1 | **blocked** | 2026-05-21 | No matching OSTI biblio entry found by author/topic search. Likely SNL-internal LDRD that was never publicly released; supersede with Conboy2014 + later post-2018 OSTI biblio (`1574791`, `1543307`) which cover the 10 MWe cycle modeling work. |
 | 6 | `Dostal2004_MIT_PhD` | V. Dostal, A Supercritical CO₂ Cycle for Next Generation Nuclear Reactors, MIT PhD thesis 2004 | https://web.mit.edu/22.33/www/dostal.pdf | P1 | **downloaded** | 2026-05-22 | MIT DSpace canonical (`dspace.mit.edu/handle/1721.1/17746`) returns CloudFront WAF 405 captcha; recovered via `web.mit.edu/22.33/www/dostal.pdf` + local HTTP proxy + curl `-C -` resume. 6.6 MB. EOF verified. |
 | 7 | `Kim2014_NED_PCHE` | Kim, Lee, Kim, Cha, *Nucl. Eng. Des.* 270 (2014) 73–81 | https://doi.org/10.1016/j.nucengdes.2014.01.006 | P1 | **blocked** | 2026-05-21 | Elsevier sciencedirect paywall via `linkinghub`. Open-access version not found on author webpage. Substitute candidate: any NRELOSTI numerical-investigation paper on PCHE zigzag channels. Re-attempt via institutional access. |
-| 8 | `Allison2025_STEP_extended` | Extended Duration Operation of a Pilot-Scale sCO₂ Test Loop (STEP project) | https://www.osti.gov/biblio/2575689 | P2 | **downloaded** | 2026-05-22 | Substitute for the unreleased DOE STEP Phase 1 final report. OSTI direct + proxy + multi-segment resume (12 attempts, accumulated). 14.5 MB / 15246152 bytes exact. EOF verified. |
+| 8 | `Held2025_BYU_pilot` | Extended Duration Operation of a Pilot-Scale sCO₂ Test Loop (BYU/Echogen 1.26 MWth pilot, San Rafael Energy Research Center) | https://www.osti.gov/biblio/2575689 | P2 | **transcribed** | 2026-05-22 | Originally logged as `Allison2025_STEP_extended` on the assumption it was a substitute for the unreleased DOE STEP Phase 1 final report. Source-identity correction 2026-05-22: paper is in fact the BYU/Echogen pilot (DOE FE award DE-FE0031928), not STEP. BibTeX key + extract doc + CSV all renamed. Table 2 transcribed into `BYU_pilot_data.csv`; CoolProp enthalpy agrees with paper h to ≤ 0.03 % at all 10 state points. |
 | 9 | `Galvas1973_NASA_TN_D7487` | Galvas, Centrifugal compressor design code (CCODP), NASA TN D-7487 | https://ntrs.nasa.gov/citations/19730019918 | P3 | pending | — | Indirect cite. NASA-TR — should follow the same NTRS API path that worked for Vrancik. Defer until ROM physical constraints become a near-term task. |
 | 10 | `Ngo2007_ETFS_PCHE` | Ngo et al., *Exp. Therm. Fluid Sci.* 32 (2007) 560–570 | https://doi.org/10.1016/j.expthermflusci.2007.06.006 | P3 | pending | — | Elsevier paywall expected; bundle attempt with future Kim2014 retry. |
 
@@ -188,3 +188,47 @@ Template:
   - Future acquisitions: `curl … | grep
     citation_technical_report_number` *before* committing the
     BibTeX entry. Would have caught the original mis-key in seconds.
+
+### 2026-05-22 — `Allison2025_STEP_extended` → `Held2025_BYU_pilot` (source-identity correction)
+
+- **Method:** first-pass read-through of the PDF (pages 1–10, all
+  tables) on 2026-05-22.
+- **Outcome:** the paper previously logged on 2026-05-22 as
+  `Allison2025_STEP_extended` and treated as a substitute citation
+  for the unreleased DOE STEP Phase 1 final report is in fact a
+  separate work: **T. J. Held et al., "Extended Duration Operation
+  of a Pilot-Scale Supercritical CO₂ Test Loop", ASME GT2025-152150,
+  Memphis TN, June 2025**. It describes the **BYU/Echogen 1.26 MWth
+  pilot at the San Rafael Energy Research Center** (DOE FE award
+  `DE-FE0031928`), not the Southwest Research Institute–led 10 MWe
+  STEP demonstration. STEP and the BYU pilot are two distinct
+  DOE-funded sCO₂ pilot programmes.
+- **Detection trigger:** the PDF cover page lists Held + 7 BYU /
+  Echogen / SRERC co-authors (no Allison), the DOE acknowledgement
+  cites award `DE-FE0031928` (a BYU project), and the system
+  schematic in Figure 3 / Table 2 describes a 5.5 kg/s 1.26 MW
+  loop, not a 10 MWe STEP-class system. None of the four
+  cross-checks reaches the same conclusion as the OSTI biblio
+  metadata, which used "Allison" as a generic conference-paper
+  authorship tag.
+- **Next action:**
+  - BibTeX key updated `Allison2025_STEP_extended` →
+    `Held2025_BYU_pilot` in `docs/references.bib`; full author list
+    + venue + DOE award number added.
+  - Extract stub renamed `allison2025_step_extended.md` →
+    `held2025_byu_pilot.md`; replaced "stub — read-through pending"
+    with full Table 1 / 2 / 3 transcription and topology /
+    operations / pump notes.
+  - CSV renamed `STEP_phase1_data.csv` (header-only placeholder)
+    → `BYU_pilot_data.csv` (6 component-pair rows transcribed
+    from Table 2). Independent transcription confidence comes from
+    a CoolProp enthalpy cross-check: H('T', T, 'P', P, CO2) agrees
+    with the paper's tabulated h to ≤ 0.03 % at all 10 state
+    points.
+  - Three repo-wide doc updates in the same change set:
+    `docs/known_gaps.md` Gap 5 rewritten; `docs/01_phase1_properties.md`
+    § 1.6 STEP/BYU split; `validation/experimental_data/data_sources.md`
+    BYU section added with row tags + correction note.
+  - Future STEP Phase 1 final, when released, will get a *new*
+    BibTeX key and a *new* `STEP_phase1_data.csv`. Do **not**
+    back-fill BYU pilot rows under that filename.

@@ -48,21 +48,56 @@ validation harness is exercised even before more SNL rows arrive.
 
 ---
 
-## DOE STEP demonstration project
+## DOE STEP demonstration project (Southwest Research Institute, 10 MWe)
 
 **Status:** *not yet populated.*
 
-- **Phase 1 (simple cycle, ~500 °C):** public reports released — usable.
+- **Phase 1 (simple cycle, ~500 °C):** final report not yet released as
+  of 2026-05-22 despite earlier interim reporting. Do not commit
+  speculative rows.
 - **Phase 2 (RCBC, ~715 °C):** in progress as of 2025; data not yet public.
   Do not cite "715 °C RCBC operating data" as available.
 
-Add `STEP_phase1_data.csv` with columns aligned to the SNL CSV when ready.
+When the DOE STEP Phase 1 final report is released, create a *new*
+`STEP_phase1_data.csv` (the original placeholder file by that name was
+retired — see "BYU pilot" entry below for the source-identity correction
+history).
 
-**Substitute reference until the DOE STEP Phase 1 final report is released:**
-the conference paper ["Extended Duration Operation of a Pilot-Scale
-Supercritical CO₂ Test Loop"](https://www.osti.gov/biblio/2575689)
-(BibTeX `Allison2025_STEP_extended`) is on local disk and indexed at
-[`docs/data_extracts/allison2025_step_extended.md`](../../docs/data_extracts/allison2025_step_extended.md).
+---
+
+## BYU/Echogen 1.26 MWth pilot-scale sCO₂ test loop
+
+**Status:** populated (single-pass; cross-verified via enthalpy).
+**BibTeX key:** [`Held2025_BYU_pilot`](../../docs/references.bib).
+**Extract notes:** [`docs/data_extracts/held2025_byu_pilot.md`](../../docs/data_extracts/held2025_byu_pilot.md).
+
+`BYU_pilot_data.csv` carries 6 component-pair rows transcribed from
+Held et al. 2025 (ASME GT2025-152150) Table 2:
+
+| Row tag | Locator | Confidence |
+|---|---|---|
+| `Held2025_BYU_T2_pump`        | Table 2 (states 1→2),  p.4 | A |
+| `Held2025_BYU_T2_recup_cold`  | Table 2 (states 2'→3), p.4 | A |
+| `Held2025_BYU_T2_phx`         | Table 2 (states 3'→4), p.4 | A |
+| `Held2025_BYU_T2_throttle`    | Table 2 (states 4'→5), p.4 | A |
+| `Held2025_BYU_T2_recup_hot`   | Table 2 (states 5'→6), p.4 | A |
+| `Held2025_BYU_T2_chx`         | Table 2 (state 6→1),   p.4 | A |
+
+> **Source-identity correction (2026-05-22):** this CSV used to be
+> `STEP_phase1_data.csv`, on the assumption that the underlying paper
+> was a substitute for the unreleased DOE STEP Phase 1 final report.
+> First-pass read-through revealed the paper actually describes the
+> separate BYU/Echogen pilot at the San Rafael Energy Research Center
+> (DOE FE award DE-FE0031928) — a different DOE-funded sCO₂ pilot
+> from STEP. The CSV was renamed and the BibTeX key updated from
+> `Allison2025_STEP_extended` → `Held2025_BYU_pilot`. See the
+> acquisition log for full history.
+
+`rho_inlet_measured` is blank for every row because Held Table 2
+tabulates P / T / mdot / h only, not ρ. Independent transcription
+confidence comes from cross-checking CoolProp's enthalpy call at
+each (T, P) against the paper's tabulated h: agreement is within
+0.03 % across all 10 state points (verified single-pass 2026-05-22).
 
 ---
 
