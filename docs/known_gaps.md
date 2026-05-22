@@ -56,9 +56,9 @@
 ## Gap 4 — Tritium permeation material constants  <a id="tritium-constants"></a>
 
 **Phase:** 3 (`Components/HeatExchangers/TritiumPermeationLayer.mo`).
-**Status:** placeholder — single Inconel-617 default exposed as Modelica `parameter` (overridable by user); Best/Worst/Custom preset wrapper not yet implemented.
+**Status:** Best/Worst/Custom preset wrapper implemented (2026-05-22); literature-bracketed defaults indicative only — second-pass verification of upper/lower envelope values pending.
 **Where it bites:** Reported tritium permeability for Inconel 617 (Φ₀, Eₐ) varies by 10×–100× across papers because surface oxide layers dominate the result.
-**Current placeholder:** the Modelica component exposes `Phi_0` and `E_a` as overridable parameters with Inconel-617 indicative defaults. **Defaults are indicative only.** A future revision will bracket the answer with `Worst_Case` (no oxide barrier, literature maximum) / `Best_Case` (intact oxide, literature minimum) / `Custom` presets per Gap-4 escape strategy.
+**Current placeholder:** the Modelica component selects between three presets via `parameter Integer preset` (1=Worst_Case no-oxide upper bound, 2=Best_Case intact-oxide lower bound, 3=Custom). Worst defaults Φ₀=2e-6 / Eₐ=42 kJ/mol, Best defaults Φ₀=2e-8 / Eₐ=55 kJ/mol; both are **indicative envelope values** anchored to Causey SAND2008-1141 + Forcey 1988 narrative ranges — not single-source-traceable yet. Custom channel exposes `Phi_0_user` / `E_a_user` and requires the caller to cite their source.
 **Escape strategy:** the model bounds the answer rather than predicting an absolute number. Output is *"under the worst documented case, accumulation is X; under the best, Y"*.
 **Upstream:** Causey et al., *Tritium Barriers and Permeation*, SAND2008-1141; Forcey et al., *J. Nucl. Mater.* (1988) — Inconel series data.
 

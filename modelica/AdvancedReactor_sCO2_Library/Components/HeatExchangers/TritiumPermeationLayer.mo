@@ -11,16 +11,54 @@ model TritiumPermeationLayer
     "PCHE wall thickness (m)";
 
   // ── Material permeability (Arrhenius form: Φ = Φ₀·exp(−Eₐ/RT)) ──
-  // PLACEHOLDER: defaults below are indicative only — see
-  // docs/known_gaps.md#tritium-constants. Reported Φ₀/Eₐ for Inconel 617
-  // varies by 10×–100× across papers because the surface oxide layer
-  // dominates the result. Bracket the answer rather than trust a single
-  // constant: the full Best/Worst/Custom preset interface is tracked at
-  // docs/known_gaps.md#tritium-constants.
-  parameter Real Phi_0 = 2.0e-7
-    "Permeability pre-factor Φ₀ (mol·m⁻¹·s⁻¹·Pa⁻⁰·⁵) — material-specific; verify from literature";
-  parameter Modelica.Units.SI.MolarEnergy E_a = 45e3
-    "Permeation activation energy Eₐ (J/mol) — typical for Inconel 617";
+  // Reference: docs/known_gaps.md#tritium-constants. Reported Φ₀/Eₐ for
+  // Inconel 617 varies by 10×–100× across papers because the surface
+  // oxide layer dominates the result. Per Gap 4 escape strategy the
+  // honest output is a *bracket* — Worst_Case / Best_Case / Custom.
+  // Picking a single literature value would imply a precision the data
+  // does not support.
+  //
+  // Preset:
+  //   1 = Worst_Case  (no oxide barrier; literature-maximum Inconel 617:
+  //                    high Φ₀, low Eₐ → upper-bound permeation)
+  //   2 = Best_Case   (intact oxide barrier; literature-minimum Inconel 617:
+  //                    low Φ₀, high Eₐ → lower-bound permeation)
+  //   3 = Custom      (use Phi_0_user / E_a_user — user must cite source)
+  parameter Integer preset = 1
+    "1=Worst, 2=Best, 3=Custom — see docs/known_gaps.md#tritium-constants";
+
+  // Worst-Case constants (no oxide barrier; Causey SAND2008-1141 upper
+  // envelope for Inconel-series alloys; Φ₀ ≈ 2e-6 mol·m⁻¹·s⁻¹·Pa⁻⁰·⁵,
+  // Eₐ ≈ 42 kJ/mol).
+  parameter Real Phi_0_worst = 2.0e-6
+    "Worst-case Φ₀ (mol·m⁻¹·s⁻¹·Pa⁻⁰·⁵) — no oxide barrier";
+  parameter Modelica.Units.SI.MolarEnergy E_a_worst = 42e3
+    "Worst-case Eₐ (J/mol) — no oxide barrier";
+
+  // Best-Case constants (intact oxide barrier; Forcey J. Nucl. Mater. 1988
+  // lower envelope; Φ₀ ≈ 2e-8 mol·m⁻¹·s⁻¹·Pa⁻⁰·⁵, Eₐ ≈ 55 kJ/mol).
+  parameter Real Phi_0_best = 2.0e-8
+    "Best-case Φ₀ (mol·m⁻¹·s⁻¹·Pa⁻⁰·⁵) — intact oxide barrier";
+  parameter Modelica.Units.SI.MolarEnergy E_a_best = 55e3
+    "Best-case Eₐ (J/mol) — intact oxide barrier";
+
+  // Custom channel — user must cite source in any published result.
+  parameter Real Phi_0_user = 2.0e-7
+    "Custom Φ₀ (mol·m⁻¹·s⁻¹·Pa⁻⁰·⁵) — used only when preset=3; cite source";
+  parameter Modelica.Units.SI.MolarEnergy E_a_user = 45e3
+    "Custom Eₐ (J/mol) — used only when preset=3; cite source";
+
+  // Effective Φ₀ and Eₐ selected by preset (final parameter values).
+  final parameter Real Phi_0 =
+    if preset == 1 then Phi_0_worst
+    elseif preset == 2 then Phi_0_best
+    else Phi_0_user
+    "Effective Φ₀ at the selected preset";
+  final parameter Modelica.Units.SI.MolarEnergy E_a =
+    if preset == 1 then E_a_worst
+    elseif preset == 2 then E_a_best
+    else E_a_user
+    "Effective Eₐ at the selected preset";
 
   constant Real R = Modelica.Constants.R
     "Universal gas constant (J/(mol·K))";
