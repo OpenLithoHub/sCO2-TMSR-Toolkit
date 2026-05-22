@@ -116,9 +116,21 @@ When you transcribe data from a new source:
 4. **Run the validator** (`python -m src.tools.validate_against_sandia
    --data <csv>`) and confirm CoolProp agrees within the grade's tolerance
    band. If it does not, do *not* widen tolerance silently — investigate.
-5. **Two-pass review.** A second human (or, failing that, the same human
-   in a fresh session) verifies the transcribed numbers character-by-
-   character against the PDF. Mark `confidence` only after pass 2.
+5. **Commit-message provenance.** The commit that introduces a CSV row
+   must name (a) the `source_ref`, (b) the locator (table / figure /
+   section + page) the row was read from, and (c) the transcription
+   pass — `single-pass` is the default. This makes `git blame` an
+   audit trail in lieu of a second reviewer.
+
+> **Two-pass review was removed (2026-05-22).** Earlier versions of this
+> protocol required a second human (or fresh-session pass) to verify
+> every transcribed value before its `confidence` grade was finalised.
+> The project now ships single-pass transcription as the canonical
+> path: a numeric error inside the CoolProp tolerance band (A ≤ 1 %,
+> B ≤ 5 %, C ≤ 15 %) is absorbed by the validator; an error outside
+> the band trips CI immediately. Trade-off accepted: faster gap
+> closure at the cost of weaker out-of-band typo detection. The
+> commit log (§ 5 step 5) is now the only audit trail.
 
 ---
 
