@@ -13,8 +13,12 @@
 
 | File | Mixture | Coverage |
 |------|---------|----------|
+| `co2_he_1pct.png` / `.csv` | CO₂ + Helium @ 1 mol% | T 290-800 K, P 5-25 MPa, 50×50 grid |
 | `co2_he_3pct.png` / `.csv` | CO₂ + Helium @ 3 mol% | T 290-800 K, P 5-25 MPa, 50×50 grid |
+| `co2_he_5pct.png` / `.csv` | CO₂ + Helium @ 5 mol% | T 290-800 K, P 5-25 MPa, 50×50 grid |
+| `co2_h2o_0p5pct.png` / `.csv` | CO₂ + Water @ 0.5 mol% | T 290-700 K, P 5-25 MPa, 40×40 grid |
 | `co2_h2o_1pct.png` / `.csv` | CO₂ + Water @ 1 mol% | T 290-700 K, P 5-25 MPa, 40×40 grid |
+| `co2_h2o_2pct.png` / `.csv` | CO₂ + Water @ 2 mol% | T 290-700 K, P 5-25 MPa, 40×40 grid |
 
 ## Status legend (encoded as `status_code` in CSV)
 
@@ -37,13 +41,40 @@ The CSV companion is written automatically next to the PNG. Both are
 checked into the repo so reviewers can see the result without re-running
 CoolProp; regenerate them after every CoolProp version bump.
 
+To regenerate **every** envelope in one shot (e.g. after a CoolProp
+version bump), use the wrapper script — it pins grid sizes and T/P
+ranges so the artifacts here are reproducible across machines:
+
+```bash
+bash validation/failure_envelopes/regenerate_all.sh
+```
+
+After regeneration, diff the resulting CSVs against the previous
+commit. A status-cell delta indicates the new CoolProp release
+shifted the failure boundary; that delta is itself worth reporting.
+
 ## Headline finding (current snapshot, CoolProp 7.2.0)
 
-- **CO₂ + 3 mol% Helium:** ~54% of the engineering T-P window cannot be
-  evaluated. The open mixture stack is *not usable* for serious cycle
-  studies of helium-tagged sCO₂ today.
-- **CO₂ + 1 mol% Water:** ~0.1% failure. CoolProp's CO₂-H₂O HEOS is
-  effectively production-grade across the cycle window.
+CO₂ + Helium failure rate scales sharply with He content; the open
+mixture stack collapses well before nuclear-relevant impurity levels:
+
+| Mixture | OK cells | Solver-failed cells | Failure % |
+|---------|----------|---------------------|-----------|
+| CO₂ + 1 mol% He | 1500 | 1000 | **40.0 %** |
+| CO₂ + 3 mol% He | 1140 | 1342 | **53.7 %** |
+| CO₂ + 5 mol% He |  944 | 1556 | **62.2 %** |
+
+CO₂ + H₂O is effectively production-grade across the cycle window at
+all three impurity levels probed:
+
+| Mixture | OK cells | Solver-failed cells | Failure % |
+|---------|----------|---------------------|-----------|
+| CO₂ + 0.5 mol% H₂O | 1599 | 1 | **0.06 %** |
+| CO₂ + 1 mol% H₂O   | 1599 | 1 | **0.06 %** |
+| CO₂ + 2 mol% H₂O   | 1594 | 6 | **0.38 %** |
+
+Cell counts come straight from the `status_code` column of each
+companion CSV. Update this table whenever the artifacts are regenerated.
 
 > If you have measurement-grade mixture data inside the red regions of
 > these maps — particularly for CO₂-He at high pressure — please open an
