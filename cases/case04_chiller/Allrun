@@ -1,7 +1,8 @@
 #!/bin/sh
-# Allrun for case04_chiller
+# Allrun for case04_chiller — multi-region (chtMultiRegionFoam).
 # Reference: docs/02_phase2_cfd_rom.md § 2.5 +
-#            docs/data_extracts/wright2010_sand2010-0171.md "Table 3.2".
+#            docs/data_extracts/wright2010_sand2010-0171.md "Table 3.2" +
+#            docs/known_gaps.md#pche-geometry.
 #
 # Pipeline:
 #   1. Generate helical_tube.stl + chiller_shell.stl from Wright2010 Table 3.2
@@ -9,13 +10,17 @@
 #   2. surfaceFeatureExtract: extract sharp edges (tube end caps + shell rims)
 #      so snappyHexMesh can snap to them.
 #   3. blockMesh: background Cartesian mesh enclosing both STLs.
-#   4. snappyHexMesh: cut tube + shell walls out of the background, with
-#      production refinement (3 4)/(2 3) and surface layers on the tube wall.
-#   5. checkMesh + buoyantPimpleFoam smoke run.
+#   4. snappyHexMesh: cut tube + shell walls, tag the tube interior as the
+#      `gas_zone` cellZone (snappyHexMeshDict refinementSurfaces.tube_wall.
+#      cellZone) and the tube/shell interface as the `tube_wall` faceZone.
+#   5. splitMeshRegions -cellZones -overwrite: peel the gas region (sCO₂)
+#      out of the default region (renamed `liquid`); creates per-region
+#      polyMesh dirs and faceZone-coupled boundary patches.
+#   6. checkMesh on each region.
+#   7. chtMultiRegionFoam: coupled gas + liquid + tube_wall regionCoupling.
 #
-# Production-grade refinement (matches snappyHexMeshDict). Set
-# CASE04_SMOKE_TEST=1 in the environment to fall back to coarser refinement
-# without editing the dict (passes -parallel/-overwrite untouched).
+# Set CASE04_SMOKE_TEST=1 in the environment to fall back to coarser
+# refinement without editing the dict (passes -parallel/-overwrite untouched).
 set -e
 cd "${0%/*}" || exit 1
 
@@ -34,10 +39,25 @@ runApplication surfaceFeatureExtract
 # (3) Background mesh.
 runApplication blockMesh
 
-# (4) Cut helix + shell with production refinement + surface layers.
+# (4) Cut helix + shell with production refinement + surface layers; tag the
+#     tube interior as gas_zone and the tube/shell interface as tube_wall
+#     faceZone (see system/snappyHexMeshDict refinementSurfaces.tube_wall).
 runApplication snappyHexMesh -overwrite
 
-# (5) Quality check + smoke solve.
-runApplication checkMesh
-runApplication buoyantPimpleFoam
+# (5) Split the mesh into per-region directories. After this:
+#       constant/gas/polyMesh/        — cells that were inside helical_tube.stl
+#       constant/liquid/polyMesh/     — remaining shell-side cells
+#       constant/<region>/polyMesh/boundary  — gains a regionCoupling
+#                                              tube_wall_<region> patch.
+#     splitMeshRegions consumes constant/regionProperties to learn which
+#     regions to write.
+runApplication splitMeshRegions -cellZones -overwrite
+
+# (6) Quality check on each region.
+for region in gas liquid; do
+    runApplication -a -s "$region" checkMesh -region "$region"
+done
+
+# (7) Coupled multi-region solve.
+runApplication chtMultiRegionFoam
 echo "case04_chiller: done."

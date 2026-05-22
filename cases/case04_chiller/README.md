@@ -39,18 +39,44 @@
 
 ## Status
 
-✅ **Helical-coil pipeline at production-grade refinement.** STL generator
+✅ **Multi-region (chtMultiRegionFoam) pipeline scaffolded.** Built on the
+production-grade helical-coil mesh: STL generator
 (`src/tools/cad/helical_coil.py`) emits `helical_tube.stl` + `chiller_shell.stl`
 from the Wright2010 Table 3.2 defaults; `system/surfaceFeatureExtractDict`
 extracts feature edges (tube end caps + shell rims) into `.eMesh` files;
 `system/blockMeshDict` is the background Cartesian mesh enclosing both STLs
-and exposes `liquid_inlet` / `liquid_outlet` / `background_sides` patches
-(named for the shell-side flow domain — see "What still needs doing" for
-the gas-side multi-region split); `system/snappyHexMeshDict` cuts the tube
-and shell walls at production levels (3 4)/(2 3), references the feature
-edges, and grows surface layers on the tube wall (5 layers, expansion 1.2).
-`Allrun` runs the full chain (STL → surfaceFeatureExtract → blockMesh →
-snappyHexMesh → checkMesh → buoyantPimpleFoam).
+and exposes `liquid_inlet` / `liquid_outlet` / `background_sides` patches;
+`system/snappyHexMeshDict` cuts the tube and shell walls at production
+levels (3 4)/(2 3), references the feature edges, grows surface layers on
+the tube wall (5 layers, expansion 1.2), **and tags the tube interior as
+the `gas_zone` cellZone with the tube/shell interface as the `tube_wall`
+faceZone** (refinementSurfaces.tube_wall.{cellZone, faceZone, cellZoneInside};
+`locationsInMesh` lists the per-region insidePoints).
+
+`Allrun` now runs the full multi-region chain: STL → surfaceFeatureExtract
+→ blockMesh → snappyHexMesh → **splitMeshRegions -cellZones -overwrite** →
+per-region checkMesh → **chtMultiRegionFoam**. Per-region directories are
+populated:
+
+```
+0/{gas,liquid}/{T,p,p_rgh,U,k,omega,nut,alphat}
+constant/{gas,liquid}/{thermophysicalProperties,turbulenceProperties,g}
+system/controlDict                      # global time controls + functions
+system/{gas,liquid}/{fvSchemes,fvSolution}
+constant/regionProperties               # `fluid (gas liquid)` topology
+```
+
+Boundary conditions on `tube_wall_gas` / `tube_wall_liquid` use
+`compressible::turbulentTemperatureCoupledBaffleMixed` (regionCoupling), so
+heat is transferred across the tube wall by region-to-region thermal
+matching rather than by meshing the wall as a thin solid.
+
+**Validation status:** dictionary-only — none of the steps above have been
+exercised in an OpenFOAM environment. The next checkpoint is to run
+`Allrun` on a workstation with OpenFOAM ≥ v2012 / OpenFOAM 11 and
+confirm that splitMeshRegions yields two non-empty regions and
+chtMultiRegionFoam reaches the first time step. Smoke-test refinement
+fallback via `CASE04_SMOKE_TEST=1` is wired in `Allrun`.
 
 The intent of staging this case is to:
 
@@ -78,23 +104,23 @@ The intent of staging this case is to:
 - [x] Rename background patches to reflect that the meshed domain is
       shell-side (liquid) only until the tube interior becomes a separate
       region: `liquid_inlet` / `liquid_outlet` / `background_sides`.
-- [ ] Multi-region split (chtMultiRegionFoam): mesh the tube interior as a
-      separate `gas` region and the shell annulus as `liquid`, with a
-      `tube_wall` faceZone coupling them via solid heat conduction. Today
-      `tube_wall` is exposed as a single wall patch and the gas-side flow
-      domain is not yet meshed. The post-processing for convective heat
-      transfer extraction blocks on this split.
-      *Scaffold present:* `constant/regionProperties` declares the target
-      `(gas liquid)` fluid-region topology. **Not consumed by the live
-      Allrun yet** — the pipeline still calls `buoyantPimpleFoam` on the
-      single-region shell-side mesh. Promoting to chtMultiRegionFoam needs:
-      (a) `system/snappyHexMeshDict` to tag the tube interior as a cellZone
-      (add a `refinementRegions { tube_wall { mode inside; } }` block);
-      (b) an `Allrun` step running `splitMeshRegions -cellZones -overwrite`
-      after snappyHexMesh; (c) per-region `system/{gas,liquid}/fvSchemes`,
-      `fvSolution`, and `0/{gas,liquid}/` field initial conditions; (d)
-      switch the solver call to `chtMultiRegionFoam`. Each step needs an
-      OpenFOAM environment to validate.
+- [x] Multi-region split (chtMultiRegionFoam): the tube interior is now
+      meshed as the `gas` region (cellZone tagged in
+      `system/snappyHexMeshDict` refinementSurfaces.tube_wall.cellZone =
+      `gas_zone`, cellZoneInside `inside`) and the shell annulus as
+      `liquid`. The tube/shell interface is exposed as a `tube_wall`
+      faceZone and split into `tube_wall_gas` / `tube_wall_liquid`
+      regionCoupling patches by `splitMeshRegions -cellZones`. Boundary
+      conditions on those patches use
+      `compressible::turbulentTemperatureCoupledBaffleMixed`. The pipeline
+      now calls `chtMultiRegionFoam`. Per-region directories
+      (`0/{gas,liquid}/`, `constant/{gas,liquid}/`,
+      `system/{gas,liquid}/`) are populated with k-ω SST schemes
+      mirroring case01. **Not yet validated in an OpenFOAM environment**
+      — dictionaries are written from the OpenFOAM tutorial template
+      (heatTransfer/chtMultiRegionFoam/multiRegionHeater) but the only
+      check so far is that the dict files parse on this machine. First
+      OpenFOAM run is the next deliverable.
 - [ ] Calibrate `coil_radius` against the Wright2010 single-coil length
       (19.15 m). Default R=200 mm gives ~18.9 m arc; sweep R or N to
       match exactly if needed (see CLI `--coil-radius` / `--turns`).

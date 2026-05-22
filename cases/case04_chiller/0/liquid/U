@@ -1,0 +1,40 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| Liquid-region velocity. Inlet bulk velocity sized to give ~5 kg/s water    |
+| through the shell-side annulus (Wright2010 § 3 chiller flow rate).         |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volVectorField;
+    location    "0/liquid";
+    object      U;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 1 -1 0 0 0 0];
+
+internalField   uniform (0 0 0.05);
+
+boundaryField
+{
+    liquid_inlet
+    {
+        type            fixedValue;
+        value           uniform (0 0 0.05);
+    }
+    liquid_outlet
+    {
+        type            zeroGradient;
+    }
+    tube_wall_liquid
+    {
+        type            noSlip;
+    }
+    ".*"
+    {
+        type            noSlip;
+    }
+}
+
+// ************************************************************************* //

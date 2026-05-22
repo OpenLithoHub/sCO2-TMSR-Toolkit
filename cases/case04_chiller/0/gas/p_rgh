@@ -1,0 +1,27 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| Gas-region hydrostatic pressure (chtMultiRegionFoam works in p_rgh).        |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volScalarField;
+    location    "0/gas";
+    object      p_rgh;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [1 -1 -2 0 0 0 0];
+
+internalField   uniform 7.7e6;
+
+boundaryField
+{
+    ".*"
+    {
+        type            fixedFluxPressure;
+        value           uniform 7.7e6;
+    }
+}
+
+// ************************************************************************* //

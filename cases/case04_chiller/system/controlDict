@@ -1,0 +1,59 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: case04_chiller multi-region driver    |
+|  \\    /   O peration     | Reference: docs/02_phase2_cfd_rom.md § 2.5 +    |
+|   \\  /    A nd           |            docs/known_gaps.md#pche-geometry     |
+|    \\/     M anipulation  | Status: SCAFFOLD — chtMultiRegionFoam time      |
+|                           | controls; per-region schemes live under         |
+|                           | system/{gas,liquid}/.                            |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+application     chtMultiRegionFoam;
+
+startFrom       startTime;
+startTime       0;
+stopAt          endTime;
+endTime         5.0;        // s — Wright2010 chiller residence time is O(1) s
+
+deltaT          1e-3;
+adjustTimeStep  yes;
+maxCo           0.5;
+maxDi           1.0;
+maxDeltaT       1e-2;
+
+writeControl    adjustableRunTime;
+writeInterval   0.5;        // s
+purgeWrite      0;
+writeFormat     binary;
+writePrecision  8;
+writeCompression off;
+timeFormat      general;
+timePrecision   6;
+runTimeModifiable true;
+
+// chtMultiRegionFoam reads function objects from the global controlDict and
+// dispatches them to per-region post-processing. wallHeatFlux is wired only
+// on the gas-side tube_wall (the dominant heat-transfer surface in the
+// chiller) so the converged-run extractor in
+// rom/dataset/extract_from_cfd.py can pull a single Q_dot value per case.
+functions
+{
+    wallHeatFlux_gas
+    {
+        type            wallHeatFlux;
+        libs            ("libfieldFunctionObjects.so");
+        region          gas;
+        patches         (tube_wall_gas);
+        executeControl  writeTime;
+        writeControl    writeTime;
+    }
+}
+// ************************************************************************* //

@@ -1,0 +1,18 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| Gravity for the gas region — z-axis points along the helix axis (vertical) |
+| in the case04 default geometry, so g acts in -z.                           |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       uniformDimensionedVectorField;
+    location    "constant/gas";
+    object      g;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 1 -2 0 0 0 0];
+value           (0 0 -9.81);
+
+// ************************************************************************* //

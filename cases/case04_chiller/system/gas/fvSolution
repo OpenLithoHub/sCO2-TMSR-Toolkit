@@ -1,0 +1,51 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| Linear-solver settings for the gas (sCO₂) region under chtMultiRegionFoam.  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system/gas";
+    object      fvSolution;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+solvers
+{
+    "rho.*"     { solver PCG; preconditioner DIC; tolerance 0; relTol 0; }
+    "p_rgh"
+    {
+        solver           GAMG;
+        smoother         GaussSeidel;
+        tolerance        1e-7;
+        relTol           0.01;
+    }
+    "p_rghFinal" { $p_rgh; relTol 0; }
+    "(U|h|k|omega)"
+    {
+        solver           PBiCGStab;
+        preconditioner   DILU;
+        tolerance        1e-7;
+        relTol           0.1;
+    }
+    "(U|h|k|omega)Final" { $U; relTol 0; }
+}
+
+PIMPLE
+{
+    momentumPredictor   yes;
+    nOuterCorrectors    2;
+    nCorrectors         2;
+    nNonOrthogonalCorrectors 1;
+    pRefCell            0;
+    pRefValue           0;
+}
+
+relaxationFactors
+{
+    fields  { ".*" 0.9; }
+    equations { ".*" 0.9; }
+}
+
+// ************************************************************************* //

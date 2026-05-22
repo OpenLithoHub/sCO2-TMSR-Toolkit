@@ -1,0 +1,52 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| Liquid-region (water) temperature. Wright2010 § 3 chiller water inlet ≈    |
+| 27 °C (300.15 K).                                                           |
+|                                                                             |
+| Boundary patches written by splitMeshRegions for the liquid region:        |
+|   tube_wall_liquid — regionCoupling with the gas side (heat transfer);     |
+|                      uses turbulentTemperatureCoupledBaffleMixed.          |
+|   liquid_inlet / liquid_outlet — background-mesh patches inherited from    |
+|                                  blockMeshDict; treat as fixedValue inlet  |
+|                                  + zeroGradient outlet for steady cooling. |
+|   shell_wall   — outer cylinder, adiabatic.                                 |
+|   background_sides — adiabatic (no flow through end caps of background).   |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volScalarField;
+    location    "0/liquid";
+    object      T;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 0 0 1 0 0 0];
+
+internalField   uniform 300.15;
+
+boundaryField
+{
+    tube_wall_liquid
+    {
+        type            compressible::turbulentTemperatureCoupledBaffleMixed;
+        Tnbr            T;
+        kappaMethod     fluidThermo;
+        value           uniform 300.15;
+    }
+    liquid_inlet
+    {
+        type            fixedValue;
+        value           uniform 300.15;
+    }
+    liquid_outlet
+    {
+        type            zeroGradient;
+    }
+    ".*"
+    {
+        type            zeroGradient;
+    }
+}
+
+// ************************************************************************* //

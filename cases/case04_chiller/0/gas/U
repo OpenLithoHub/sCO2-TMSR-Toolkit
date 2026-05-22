@@ -1,0 +1,28 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| Gas-region velocity. Stagnant initial state; tube interior is currently     |
+| capped, so all gas patches are no-slip walls. Replace with bulk inlet      |
+| velocity once the tube end caps are opened (see 0/gas/T comment).          |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volVectorField;
+    location    "0/gas";
+    object      U;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 1 -1 0 0 0 0];
+
+internalField   uniform (0 0 0);
+
+boundaryField
+{
+    ".*"
+    {
+        type            noSlip;
+    }
+}
+
+// ************************************************************************* //

@@ -1,0 +1,52 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| Discretisation schemes for the liquid region (cooling water shell-side).    |
+| Identical to gas-side schemes — water at modest ΔT does not need extra      |
+| stabilisation, but linearUpwind on h keeps the regionCoupling matched.     |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system/liquid";
+    object      fvSchemes;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+ddtSchemes
+{
+    default         Euler;
+}
+
+gradSchemes
+{
+    default         Gauss linear;
+}
+
+divSchemes
+{
+    default                          none;
+    div(phi,U)                       Gauss linearUpwindV grad(U);
+    div(phi,K)                       Gauss linear;
+    div(phi,h)                       Gauss linearUpwind default;
+    div(phi,k)                       Gauss upwind;
+    div(phi,omega)                   Gauss upwind;
+    div(((rho*nuEff)*dev2(T(grad(U))))) Gauss linear;
+}
+
+laplacianSchemes
+{
+    default         Gauss linear corrected;
+}
+
+interpolationSchemes
+{
+    default         linear;
+}
+
+snGradSchemes
+{
+    default         corrected;
+}
+
+// ************************************************************************* //

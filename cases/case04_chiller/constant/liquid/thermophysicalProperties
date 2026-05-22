@@ -1,0 +1,53 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| Liquid (cooling water) thermophysical properties — shell-side of the SNL    |
+| 10 MWe chiller per Wright2010 SAND2010-0171 § 3.                            |
+|                                                                             |
+| Liquid-side fluid is plant cooling water at moderate ΔT (Wright2010 § 3:    |
+| chiller water inlet ≈ 27 °C, outlet ≈ 38 °C). Constant-property water       |
+| with hConst transport is acceptable here — unlike the sCO₂ side, water     |
+| Cp barely varies in this T window.                                          |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "constant/liquid";
+    object      thermophysicalProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+thermoType
+{
+    type            heRhoThermo;
+    mixture         pureMixture;
+    transport       const;
+    thermo          hConst;
+    equationOfState rhoConst;
+    specie          specie;
+    energy          sensibleEnthalpy;
+}
+
+mixture
+{
+    specie
+    {
+        molWeight   18.015;         // g/mol — H2O
+    }
+    equationOfState
+    {
+        rho         997;            // kg/m³ — water at ~25 °C
+    }
+    thermodynamics
+    {
+        Cp          4181;           // J/kg·K — water near 25 °C
+        Hf          0;
+    }
+    transport
+    {
+        mu          8.9e-4;         // Pa·s — water at 25 °C
+        Pr          6.13;           // water at 25 °C
+    }
+}
+
+// ************************************************************************* //

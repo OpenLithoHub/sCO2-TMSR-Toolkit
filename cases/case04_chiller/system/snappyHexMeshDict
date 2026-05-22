@@ -67,8 +67,24 @@ castellatedMeshControls
             // Production: (3 4) — captures the gas/liquid interface curvature
             // and matches the dominant heat-transfer surface. Smoke-test
             // runs may drop to (2 3) if memory-constrained.
-            level (3 4);
-            patchInfo { type wall; }
+            //
+            // faceZone + cellZone tags are required by splitMeshRegions:
+            //   faceZone tube_wall  → kept as the regionCoupling boundary
+            //                         between the gas and liquid regions
+            //                         after splitMeshRegions -cellZones.
+            //   cellZone gas_zone   → cells inside the helical tube; the
+            //                         tube interior becomes the `gas`
+            //                         region after split. Cells outside
+            //                         the tube remain in the default
+            //                         (unzoned) domain, which split
+            //                         renames `liquid`.
+            //   cellZoneInside inside → STL is closed → cells enclosed by
+            //                         helical_tube.stl are tagged.
+            level         (3 4);
+            faceZone      tube_wall;
+            cellZone      gas_zone;
+            cellZoneInside inside;
+            patchInfo     { type wall; }
         }
         shell_wall
         {
@@ -78,12 +94,34 @@ castellatedMeshControls
             patchInfo { type wall; }
         }
     }
-    refinementRegions {}
-    // Inside the shell but outside the tube. Default coil_radius = 200 mm,
-    // shell radius ≈ 233 mm; (220, 0, 760) mm sits in the shell-side annulus
-    // at mid-height, clear of the tube wall (tube axis traces |x|=200 at
-    // turn 0/1/...).
+    refinementRegions
+    {
+        tube_wall
+        {
+            // Refine cells inside the helical tube (gas / sCO₂ side) to
+            // match the gas-region snap level. Without this block the
+            // tube interior keeps the coarse background resolution and
+            // the gas-side flow domain is under-resolved.
+            mode  inside;
+            levels ((1e15 3));
+        }
+    }
+    // The gas/liquid split needs TWO insidePoints — one per cellZone — so
+    // that splitMeshRegions can label them. Until splitMeshRegions runs
+    // the mesh is single-region and only the first locationInMesh is
+    // honoured by snappyHexMesh; the second is a forward-compatible hint
+    // for tools that read locationsInMesh (OpenFOAM ≥ 6).
+    //
+    // (0.220, 0, 0.760)  — shell-side annulus at mid-height (liquid).
+    // (0.200, 0, 0.025)  — sits inside the tube at the first turn (gas);
+    //                      tube axis traces |x|=200 mm in the (x, z) plane
+    //                      at z = pitch/4 = 25 mm.
     locationInMesh   (0.220 0.0 0.760);
+    locationsInMesh
+    (
+        ((0.220 0.0 0.760) liquid)
+        ((0.200 0.0 0.025) gas)
+    );
     allowFreeStandingZoneFaces true;
 }
 

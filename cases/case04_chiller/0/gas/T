@@ -1,0 +1,42 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| Gas-region temperature initial + boundary conditions.                       |
+| Wright2010 SAND2010-0171 § 3: chiller gas-side inlet ≈ 50 °C (323.15 K).    |
+|                                                                             |
+| Boundary patches written by splitMeshRegions for the gas region:            |
+|   tube_wall_gas — regionCoupling with the liquid side (heat transfer);     |
+|                   uses turbulentTemperatureCoupledBaffleMixed.              |
+| Inlet/outlet patches are not yet meshed (the tube interior is currently     |
+| capped by the STL end faces). Treat them as adiabatic walls for the         |
+| smoke-test stage; promote to patch type and add 0/gas/U bulk velocity once  |
+| the tube ends are opened in the CAD generator.                              |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volScalarField;
+    location    "0/gas";
+    object      T;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 0 0 1 0 0 0];
+
+internalField   uniform 323.15;
+
+boundaryField
+{
+    tube_wall_gas
+    {
+        type            compressible::turbulentTemperatureCoupledBaffleMixed;
+        Tnbr            T;
+        kappaMethod     fluidThermo;
+        value           uniform 323.15;
+    }
+    ".*"
+    {
+        type            zeroGradient;
+    }
+}
+
+// ************************************************************************* //

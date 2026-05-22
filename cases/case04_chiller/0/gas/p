@@ -1,0 +1,27 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| Gas-region pressure (absolute). 7.7 MPa per Wright2010 SAND2010-0171 § 3.   |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volScalarField;
+    location    "0/gas";
+    object      p;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [1 -1 -2 0 0 0 0];
+
+internalField   uniform 7.7e6;
+
+boundaryField
+{
+    ".*"
+    {
+        type            calculated;
+        value           uniform 7.7e6;
+    }
+}
+
+// ************************************************************************* //
