@@ -71,12 +71,39 @@ Boundary conditions on `tube_wall_gas` / `tube_wall_liquid` use
 heat is transferred across the tube wall by region-to-region thermal
 matching rather than by meshing the wall as a thin solid.
 
-**Validation status:** dictionary-only — none of the steps above have been
-exercised in an OpenFOAM environment. The next checkpoint is to run
-`Allrun` on a workstation with OpenFOAM ≥ v2012 / OpenFOAM 11 and
-confirm that splitMeshRegions yields two non-empty regions and
-chtMultiRegionFoam reaches the first time step. Smoke-test refinement
-fallback via `CASE04_SMOKE_TEST=1` is wired in `Allrun`.
+**Validation status:** mesh pipeline validated 2026-05-22 in OpenFOAM
+v2512 (`opencfd/openfoam-default:latest` Docker image). At smoke-test
+refinement (tube_wall (2 3), shell_wall (1 2), surface layers off),
+`blockMesh → snappyHexMesh -overwrite → splitMeshRegions -cellZones
+-overwrite → checkMesh -region {gas,liquid}` runs to completion and
+yields gas region 1.07 M cells / liquid region 2.35 M cells with
+`gas_to_liquid` and `liquid_to_gas` regionCoupling patches auto-
+generated. Two structural fixes landed in this validation pass and are
+preserved here for future runs:
+
+- `helical_coil.py` now emits STL in metres by default (`--out-units m`).
+  snappyHexMesh consumes STL in raw units regardless of the
+  `blockMeshDict scale 0.001`, so the previous mm output sat 1000×
+  outside the metres background mesh and refined zero cells. Pass
+  `--out-units mm` only for legacy single-region runs.
+- `build_tube_stl(with_endcaps=True)` adds fan-triangulated end caps so
+  the swept ring is closed (`surfaceCheck` confirms "Surface is closed.
+  All edges connected to two faces."). This lets
+  `refinementSurfaces.tube_wall` use `cellZone gas` +
+  `cellZoneInside insidePoint`, which is robust to the helix STL
+  chopping the background mesh into many disconnected topological
+  regions; the prior `locationsInMesh`-only approach was placing the
+  gas seed in the same flood-fill region as the liquid seed.
+
+Production knobs (tube_wall (3 4), shell_wall (2 3), 5/2 surface layers)
+are preserved as commented-out alternatives in `system/snappyHexMeshDict`
+and require ≥ 16 GB container memory (the 8 GB default OOM-kills snappy
+during `addLayers`). Smoke-test refinement fallback via
+`CASE04_SMOKE_TEST=1` is wired in `Allrun`.
+
+The next checkpoint is to run `chtMultiRegionFoam` to the first
+non-trivial time step (gas pseudo-critical thermo + cooling-water
+heat transfer across the regionCoupling pair).
 
 The intent of staging this case is to:
 

@@ -72,8 +72,10 @@ def test_tube_stl_is_well_formed_ascii():
     assert stl.rstrip().endswith("endsolid helical_tube")
     assert stl.count("facet normal") == stl.count("endfacet")
     assert stl.count("outer loop") == stl.count("endloop")
-    # 2 turns × 16 segs/turn = 32 spans, 12 circ facets/span × 2 tris/facet.
-    assert stl.count("facet normal") == 32 * 12 * 2
+    # 2 turns × 16 segs/turn = 32 spans, 12 circ facets/span × 2 tris/facet,
+    # plus 2 fan-triangulated end caps × 12 tris each (closes the swept ring
+    # so snappyHexMesh's locationsInMesh seeds don't leak across).
+    assert stl.count("facet normal") == 32 * 12 * 2 + 2 * 12
 
 
 def test_shell_stl_is_well_formed_ascii():

@@ -1,0 +1,26 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| Top-level fvSchemes for the pre-split background mesh.                      |
+| chtMultiRegionFoam reads system/{gas,liquid}/fvSchemes after                |
+| splitMeshRegions; this file only exists so that mesh utilities              |
+| (snappyHexMesh, checkMesh, splitMeshRegions) can resolve the case before    |
+| the per-region directories take over. The per-region schemes are the       |
+| ones that govern the actual solve; this file is intentionally minimal.     |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      fvSchemes;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+ddtSchemes      { default steadyState; }
+gradSchemes     { default Gauss linear; }
+divSchemes      { default none; }
+laplacianSchemes { default Gauss linear corrected; }
+interpolationSchemes { default linear; }
+snGradSchemes   { default corrected; }
+
+// ************************************************************************* //

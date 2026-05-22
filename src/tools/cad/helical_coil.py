@@ -57,7 +57,16 @@ from pathlib import Path
 
 @dataclass
 class HelicalCoilParams:
-    """All units mm; matches blockMeshDict scale=0.001 convention."""
+    """Geometry knobs in mm; STLs are written in m (see CLI `--out-units`).
+
+    The Wright2010 Table 3.2 numbers are millimetre-natural, so the
+    parameter dataclass keeps the mm convention. The on-disk STL is
+    converted to metres before being written so that snappyHexMesh (which
+    reads STL files in their raw units, ignoring blockMeshDict.scale) sees
+    the geometry in the same coordinate system as the background mesh.
+    Pass ``--out-units mm`` to skip the conversion (legacy single-region
+    runs that paired the STL with a `scale 0.001` blockMeshDict).
+    """
 
     tube_od: float = 38.1          # outer tube diameter (Wright2010 Table 3.2)
     tube_wall: float = 2.4         # tube wall thickness (Wright2010 Table 3.2)
@@ -229,12 +238,27 @@ def _tri(p1, p2, p3, normal=None) -> str:
     )
 
 
-def build_tube_stl(p: HelicalCoilParams, name: str = "helical_tube") -> str:
+def build_tube_stl(
+    p: HelicalCoilParams,
+    name: str = "helical_tube",
+    with_endcaps: bool = True,
+) -> str:
     """Return an ASCII STL string for the tube outer surface.
 
     The tube is the outer wall of the inner pipe — radius = tube_od / 2.
-    End caps are NOT emitted (snappyHexMesh sees inlet/outlet patches via
-    blockMesh background mesh).
+
+    End caps
+    --------
+    `with_endcaps=True` (default) closes the swept ring at z=0 and z=top
+    with a pair of fan-triangulated disks. A closed STL is required by
+    snappyHexMesh's multi-region path: ``locationsInMesh`` flood-fills
+    each region from a seed point and stops at faces of the meshed
+    surface, but the seed cannot cross an open shell — so without end
+    caps the gas seed leaks into the shell-side domain and the gas
+    cellZone collapses into liquid.
+
+    Pass ``with_endcaps=False`` only for legacy single-region runs that
+    rely on the blockMesh inlet/outlet patches (the original behaviour).
     """
     cl = helix_centreline(p)
     frames = parallel_transport_frames(cl)
@@ -253,6 +277,20 @@ def build_tube_stl(p: HelicalCoilParams, name: str = "helical_tube") -> str:
             a, b, c, d = r0[k], r0[kn], r1[kn], r1[k]
             facets.append(_tri(a, b, c))
             facets.append(_tri(a, c, d))
+
+    if with_endcaps:
+        # Inlet cap: fan from centreline[0] across ring[0]. Outlet cap: fan
+        # from centreline[-1] across ring[-1]. Winding chosen so the cap
+        # normals point out of the tube (away from interior) — important
+        # for snappyHexMesh's inside / outside test.
+        c_in = cl[0]
+        for k in range(n_circ):
+            kn = (k + 1) % n_circ
+            facets.append(_tri(c_in, rings[0][kn], rings[0][k]))
+        c_out = cl[-1]
+        for k in range(n_circ):
+            kn = (k + 1) % n_circ
+            facets.append(_tri(c_out, rings[-1][k], rings[-1][kn]))
 
     body = "".join(facets)
     return f"solid {name}\n{body}endsolid {name}\n"
@@ -306,6 +344,36 @@ def implied_arc_length_mm(p: HelicalCoilParams) -> float:
 
 
 # --------------------------------------------------------------------------
+# Unit conversion
+# --------------------------------------------------------------------------
+
+
+def _scale_stl_vertices(stl: str, factor: float) -> str:
+    """Scale every ``vertex x y z`` line in an ASCII STL by ``factor``.
+
+    Facet ``normal`` directions are unitless and left untouched. Used to
+    convert the mm-natural builder output into the metres that
+    snappyHexMesh expects (it consumes STL in raw units, ignoring the
+    blockMeshDict ``scale`` entry).
+    """
+    out_lines: list[str] = []
+    for line in stl.splitlines(keepends=True):
+        stripped = line.lstrip()
+        if stripped.startswith("vertex "):
+            indent = line[: len(line) - len(stripped)]
+            tail_nl = "\n" if line.endswith("\n") else ""
+            parts = stripped.rstrip("\n").split()
+            # parts == ["vertex", x, y, z]
+            x = float(parts[1]) * factor
+            y = float(parts[2]) * factor
+            z = float(parts[3]) * factor
+            out_lines.append(f"{indent}vertex {x:.6e} {y:.6e} {z:.6e}{tail_nl}")
+        else:
+            out_lines.append(line)
+    return "".join(out_lines)
+
+
+# --------------------------------------------------------------------------
 # CLI
 # --------------------------------------------------------------------------
 
@@ -326,6 +394,16 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--seg-per-turn", type=int, default=64, help="Centreline samples per turn")
     p.add_argument("--n-circ", type=int, default=24, help="Facets around the tube cross-section")
     p.add_argument("--shell-clearance", type=float, default=14.4, help="Shell-annulus clearance (mm)")
+    p.add_argument(
+        "--out-units",
+        choices=("m", "mm"),
+        default="m",
+        help="On-disk STL units. Default 'm' matches snappyHexMesh's "
+             "raw-unit consumption of STL (and the in-tree blockMeshDict, "
+             "which also resolves to metres via scale 0.001). Use 'mm' "
+             "only for legacy single-region runs that scaled the STL "
+             "alongside blockMesh.",
+    )
     args = p.parse_args(argv)
 
     params = HelicalCoilParams(
@@ -342,8 +420,13 @@ def main(argv: list[str] | None = None) -> int:
     args.out_dir.mkdir(parents=True, exist_ok=True)
     tube_path = args.out_dir / "helical_tube.stl"
     shell_path = args.out_dir / "chiller_shell.stl"
-    tube_path.write_text(build_tube_stl(params))
-    shell_path.write_text(build_shell_stl(params))
+    tube_stl = build_tube_stl(params)
+    shell_stl = build_shell_stl(params)
+    if args.out_units == "m":
+        tube_stl = _scale_stl_vertices(tube_stl, 1.0e-3)
+        shell_stl = _scale_stl_vertices(shell_stl, 1.0e-3)
+    tube_path.write_text(tube_stl)
+    shell_path.write_text(shell_stl)
 
     arc_m = implied_arc_length_mm(params) / 1000.0
     print(

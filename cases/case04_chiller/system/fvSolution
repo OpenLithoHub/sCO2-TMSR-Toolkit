@@ -1,0 +1,21 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| Top-level fvSolution for the pre-split background mesh.                     |
+| Mirrors system/fvSchemes — this file is only consulted by mesh utilities   |
+| (snappyHexMesh, splitMeshRegions). The actual solver reads                  |
+| system/{gas,liquid}/fvSolution after splitMeshRegions.                      |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      fvSolution;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+solvers
+{
+}
+
+// ************************************************************************* //
