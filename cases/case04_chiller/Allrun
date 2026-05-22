@@ -3,15 +3,31 @@
 # Reference: docs/02_phase2_cfd_rom.md § 2.5 +
 #            docs/data_extracts/wright2010_sand2010-0171.md "Table 3.2".
 #
-# PLACEHOLDER PIPELINE — see README.md "What still needs doing".
-# The real chiller geometry is helical; this script currently runs the
-# straight-tube approximation only. Replace `blockMesh` with snappyHexMesh
-# on a helical-coil STL once the CAD generator is in place.
+# Pipeline:
+#   1. Generate helical_tube.stl + chiller_shell.stl from Wright2010 Table 3.2
+#      defaults (R=200 mm, N=15, pitch=101.6 mm, tube OD=38.1 mm).
+#   2. blockMesh: background Cartesian mesh enclosing both STLs.
+#   3. snappyHexMesh: cut tube + shell walls out of the background.
+#   4. checkMesh + buoyantPimpleFoam smoke run.
 set -e
 cd "${0%/*}" || exit 1
 
+REPO_ROOT=$(cd ../.. && pwd)
+
 # Source OpenFOAM environment if needed: . $WM_PROJECT_DIR/etc/bashrc
+
+# (1) Generate STLs into constant/triSurface/.
+mkdir -p constant/triSurface
+PYTHONPATH="$REPO_ROOT/src" python3 -m tools.cad.helical_coil \
+    --out-dir constant/triSurface
+
+# (2) Background mesh.
 runApplication blockMesh
+
+# (3) Cut helix + shell.
+runApplication snappyHexMesh -overwrite
+
+# (4) Quality check + smoke solve.
 runApplication checkMesh
 runApplication buoyantPimpleFoam
-echo "case04_chiller: done (straight-tube placeholder)."
+echo "case04_chiller: done."

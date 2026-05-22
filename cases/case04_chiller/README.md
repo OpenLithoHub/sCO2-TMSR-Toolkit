@@ -39,33 +39,42 @@
 
 ## Status
 
-🚧 **Scaffold only — placeholder dicts.** Helical-coil mesh generation
-requires either `snappyHexMesh` on a CAD STL or a parametric extrusion
-along a helix; neither is wired up yet. The `system/blockMeshDict` in this
-directory is a **straight-tube approximation** of the gas-side channel
-(33.3 mm ID × 19.15 m) — used only to smoke-test the OpenFOAM chain. The
-helical-coil mesh is the real Phase 2 deliverable for this case.
+🚧 **Helical-coil pipeline wired (smoke-test grade).** STL generator
+(`src/tools/cad/helical_coil.py`) emits `helical_tube.stl` + `chiller_shell.stl`
+from the Wright2010 Table 3.2 defaults; `system/blockMeshDict` is the
+background Cartesian mesh enclosing both STLs; `system/snappyHexMeshDict`
+cuts the tube and shell walls. `Allrun` now runs the full chain
+(STL → blockMesh → snappyHexMesh → checkMesh → buoyantPimpleFoam).
+Refinement levels (2 3)/(1 1) are smoke-test grade — bump for production.
 
-The intent of staging this scaffold now is to:
+The intent of staging this case is to:
 
 1. Reserve the case slot so geometry parameters live in version control
    beside their primary source (Wright2010 Table 3.2, Confidence A).
-2. Give the ROM training pipeline (rom/dataset/extract_from_cfd.py) a
-   future engineering-scale anchor row alongside the academic micro
-   channels.
+2. Give the ROM training pipeline (rom/dataset/extract_from_cfd.py) an
+   engineering-scale anchor row alongside the academic micro channels.
 3. Make the gap between *academic placeholder* and *engineering-scale
    real geometry* visible — which is exactly the framing of
    docs/00_strategy.md § Black Hole 2.
 
 ## What still needs doing
 
-- [ ] Helical-coil CAD generator (analogous to `src/tools/cad/zigzag.py`)
-      that emits an ASCII STL of the gas-tube outer surface plus the
-      shell inner surface, parameterised by tube ID, coil pitch, and
-      number of turns.
-- [ ] Switch `system/` over to `snappyHexMesh` on the generated STL.
+- [x] Helical-coil CAD generator (analogous to `src/tools/cad/zigzag.py`)
+      emitting the gas-tube outer surface and shell inner surface,
+      parameterised by tube ID, coil pitch, and number of turns. See
+      `src/tools/cad/helical_coil.py` (tests in
+      `tests/test_helical_coil_cad.py`).
+- [x] Switch `system/` over to `snappyHexMesh` on the generated STL.
+- [ ] Production-grade refinement: bump `tube_wall` to (3 4) with surface
+      layers, add a feature-edge file (`surfaceFeatureExtract`) so the
+      tube/shell intersection edges are captured.
 - [ ] Re-do the convective heat-transfer extraction script to handle the
-      gas-side / liquid-side patch split.
+      gas-side / liquid-side patch split (currently only the tube outer
+      wall is exposed; shell-side flow domain is not yet meshed as a
+      separate region).
+- [ ] Calibrate `coil_radius` against the Wright2010 single-coil length
+      (19.15 m). Default R=200 mm gives ~18.9 m arc; sweep R or N to
+      match exactly if needed (see CLI `--coil-radius` / `--turns`).
 
 ## Geometry reference
 

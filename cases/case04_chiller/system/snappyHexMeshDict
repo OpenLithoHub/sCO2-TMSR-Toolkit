@@ -1,0 +1,120 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| snappyHexMesh: cut the helical tube + shell out of the background mesh.     |
+| Requires the two STLs produced by                                           |
+|   `python -m tools.cad.helical_coil`                                        |
+| under `constant/triSurface/`:                                               |
+|   helical_tube.stl   — gas-side tube outer wall (38.1 mm OD)                |
+|   chiller_shell.stl  — coaxial shell outer cylinder                         |
+|                                                                             |
+| Reference: docs/02_phase2_cfd_rom.md § 2.5 +                                |
+|            docs/data_extracts/wright2010_sand2010-0171.md "Table 3.2".      |
+|                                                                             |
+| Refinement levels are smoke-test grade — bump (3 4)/(2 3) for production.  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      snappyHexMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+castellatedMesh true;
+snap            true;
+addLayers       false;
+
+geometry
+{
+    helical_tube.stl
+    {
+        type triSurfaceMesh;
+        name tube_wall;
+    }
+    chiller_shell.stl
+    {
+        type triSurfaceMesh;
+        name shell_wall;
+    }
+}
+
+castellatedMeshControls
+{
+    maxLocalCells       2000000;
+    maxGlobalCells      8000000;
+    minRefinementCells  10;
+    nCellsBetweenLevels 3;
+    resolveFeatureAngle 30;
+    features            ();
+    refinementSurfaces
+    {
+        tube_wall
+        {
+            level (2 3);
+            patchInfo { type wall; }
+        }
+        shell_wall
+        {
+            level (1 1);
+            patchInfo { type wall; }
+        }
+    }
+    refinementRegions {}
+    // Inside the shell but outside the tube. Default coil_radius = 200 mm,
+    // shell radius ≈ 233 mm; (220, 0, 760) mm sits in the shell-side annulus
+    // at mid-height, clear of the tube wall (tube axis traces |x|=200 at
+    // turn 0/1/...).
+    locationInMesh   (0.220 0.0 0.760);
+    allowFreeStandingZoneFaces true;
+}
+
+snapControls
+{
+    nSmoothPatch         3;
+    tolerance            2.0;
+    nSolveIter           30;
+    nRelaxIter           5;
+    nFeatureSnapIter     10;
+}
+
+addLayersControls
+{
+    relativeSizes        true;
+    layers {}
+    expansionRatio       1.15;
+    finalLayerThickness  0.3;
+    minThickness         0.03;
+    nGrow                0;
+    featureAngle         60;
+    nRelaxIter           5;
+    nSmoothSurfaceNormals 1;
+    nSmoothNormals       3;
+    nSmoothThickness     10;
+    maxFaceThicknessRatio 0.5;
+    maxThicknessToMedialRatio 0.3;
+    minMedianAxisAngle   90;
+    nBufferCellsNoExtrude 0;
+    nLayerIter           50;
+}
+
+meshQualityControls
+{
+    maxNonOrtho         60;
+    maxBoundarySkewness 20;
+    maxInternalSkewness 4;
+    maxConcave          80;
+    minVol              1e-13;
+    minTetQuality       1e-15;
+    minArea             -1;
+    minTwist            0.05;
+    minDeterminant      0.001;
+    minFaceWeight       0.05;
+    minVolRatio         0.01;
+    minTriangleTwist    -1;
+    nSmoothScale        4;
+    errorReduction      0.75;
+}
+
+mergeTolerance 1e-6;
+
+// ************************************************************************* //
