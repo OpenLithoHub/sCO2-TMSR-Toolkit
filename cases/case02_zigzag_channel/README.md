@@ -41,7 +41,13 @@ STL is in place.
 
 ## Status
 
-🚧 **Skeleton — STL is regenerable but coarse.** The bundled `zigzag.py`
+🚧 **Skeleton — STL is regenerable but coarse, initial fields are case01-derived.** The bundled `zigzag.py`
 emits a plumbing-quality STL good for smoke-testing the snappy + buoyantPimpleFoam
 chain. Production runs should regenerate from the upstream PCHE geometry source
 (or pull a vetted STL from Zenodo per `docs/02 § 2.5.1`).
+
+The `0/` initial-field set was carried over from case01 with patch names
+remapped to case02's blockMesh + snappy patches (`inlet`, `outlet`, `sides`,
+`zigzag_wall`). Internal field values (308.15 K, 8 MPa, 1 m/s) are
+placeholders for the smoke test; real Re-sweep runs override them per
+`Allrun` parameter overrides.

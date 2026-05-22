@@ -1,0 +1,14 @@
+FoamFile
+{
+    version 2.0; format ascii; class volScalarField; location "0"; object T;
+}
+dimensions   [0 0 0 1 0 0 0];
+internalField uniform 308.15;       // 35 °C — compressor-inlet baseline
+
+boundaryField
+{
+    inlet       { type fixedValue;     value uniform 308.15; }
+    outlet      { type zeroGradient; }
+    sides       { type zeroGradient; }                       // outer bounding box: adiabatic
+    zigzag_wall { type fixedValue;     value uniform 350.0; } // hot PCHE wall — placeholder
+}

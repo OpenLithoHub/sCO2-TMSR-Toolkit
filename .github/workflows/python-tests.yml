@@ -56,3 +56,28 @@ jobs:
         with:
           files: ./coverage.xml
           fail_ci_if_error: false
+
+  rom-pipeline:
+    # Phase 2 ROM optional dependencies (torch / scikit-learn / onnx /
+    # onnxruntime). Run on a single Python version to keep CI cheap — the
+    # core test job already exercises Python 3.10/3.11/3.12 for the
+    # mainline. This job catches regressions in rom/train_rom.py and the
+    # tests/test_rom_pipeline.py end-to-end + onnxruntime checks, which
+    # the main job skips because requirements-rom.txt is not installed.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install ROM dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt -r requirements-rom.txt
+
+      - name: Run ROM pipeline tests
+        run: pytest tests/test_rom_pipeline.py -v
