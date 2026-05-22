@@ -33,12 +33,22 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
+          # Editable install so chapters can `import sco2_property_explorer` etc.
+          # without sys.path tricks.
+          pip install -e .
           pip install -r requirements.txt
-          pip install jupyter-book jupytext myst-nb
+          # Pin Jupyter Book to 1.x — JB 2.x is a from-scratch mystmd rewrite
+          # with a different CLI ("jupyter book build" subcommand expects a
+          # file, not a directory) that does not yet read this `_config.yml` /
+          # `_toc.yml` layout. Track JB 2.x compatibility separately.
+          pip install "jupyter-book<2" jupytext "myst-nb<2"
 
       - name: Build the book
         run: |
-          jupyter-book build book/
+          # `--all` rebuilds from scratch; `-W` promotes warnings to errors so
+          # a broken chapter (e.g. failing executable cell) fails CI rather
+          # than silently shipping a chapter with no rendered output.
+          jupyter-book build --all -W book/
 
       - name: Upload built site as artifact
         uses: actions/upload-artifact@v4

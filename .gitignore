@@ -23,6 +23,9 @@ env/
 # Jupyter
 .ipynb_checkpoints/
 
+# Jupyter Book build output
+book/_build/
+
 # OpenFOAM time-step directories (keep 0/, exclude 1+/)
 cases/*/[1-9]*/
 cases/*/processor*/

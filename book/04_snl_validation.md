@@ -58,7 +58,10 @@ import sys
 from pathlib import Path
 import pandas as pd
 
-repo_root = Path("..").resolve()
+repo_root = next(
+    p for p in [Path.cwd(), *Path.cwd().resolve().parents]
+    if (p / "pyproject.toml").exists()
+)
 csv_path = repo_root / "validation/experimental_data/SNL_compressor_data.csv"
 
 df = pd.read_csv(csv_path, comment="#")

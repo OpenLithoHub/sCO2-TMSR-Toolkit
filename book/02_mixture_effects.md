@@ -46,7 +46,12 @@ $\hat{f}_i^L = \hat{f}_i^V$ at constant $T$ and varying $P$.
 ```{code-cell} ipython3
 import sys
 from pathlib import Path
-sys.path.insert(0, str(Path("..").resolve() / "src"))
+
+_repo_root = next(
+    p for p in [Path.cwd(), *Path.cwd().resolve().parents]
+    if (p / "pyproject.toml").exists()
+)
+sys.path.insert(0, str(_repo_root / "src"))
 
 from sco2_mixture_validation import calc_mixture_properties
 

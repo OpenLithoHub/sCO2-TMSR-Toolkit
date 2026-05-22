@@ -43,7 +43,14 @@ The locus $\{(T_{pc}(P), P) : P > P_c\}$ is the pseudo-critical line.
 ```{code-cell} ipython3
 import sys
 from pathlib import Path
-sys.path.insert(0, str(Path("..").resolve() / "src"))
+
+# Anchor by walking up to the repo root (the directory holding pyproject.toml).
+# Robust against Jupyter Book running notebooks from a temp _build/ directory.
+_repo_root = next(
+    p for p in [Path.cwd(), *Path.cwd().resolve().parents]
+    if (p / "pyproject.toml").exists()
+)
+sys.path.insert(0, str(_repo_root / "src"))
 
 from sco2_property_explorer import find_pseudocritical_temp
 
