@@ -84,6 +84,17 @@ The intent of staging this case is to:
       `tube_wall` is exposed as a single wall patch and the gas-side flow
       domain is not yet meshed. The post-processing for convective heat
       transfer extraction blocks on this split.
+      *Scaffold present:* `constant/regionProperties` declares the target
+      `(gas liquid)` fluid-region topology. **Not consumed by the live
+      Allrun yet** — the pipeline still calls `buoyantPimpleFoam` on the
+      single-region shell-side mesh. Promoting to chtMultiRegionFoam needs:
+      (a) `system/snappyHexMeshDict` to tag the tube interior as a cellZone
+      (add a `refinementRegions { tube_wall { mode inside; } }` block);
+      (b) an `Allrun` step running `splitMeshRegions -cellZones -overwrite`
+      after snappyHexMesh; (c) per-region `system/{gas,liquid}/fvSchemes`,
+      `fvSolution`, and `0/{gas,liquid}/` field initial conditions; (d)
+      switch the solver call to `chtMultiRegionFoam`. Each step needs an
+      OpenFOAM environment to validate.
 - [ ] Calibrate `coil_radius` against the Wright2010 single-coil length
       (19.15 m). Default R=200 mm gives ~18.9 m arc; sweep R or N to
       match exactly if needed (see CLI `--coil-radius` / `--turns`).

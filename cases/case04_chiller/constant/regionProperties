@@ -1,0 +1,48 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| regionProperties — multi-region scaffold for chtMultiRegionFoam.            |
+|                                                                             |
+| STATUS: SCAFFOLD ONLY. The shipping mesh is single-region (shell-side       |
+| liquid only). This file documents the intended target topology but is not  |
+| consumed by the current Allrun pipeline (which still calls                 |
+| buoyantPimpleFoam, not chtMultiRegionFoam). See cases/case04_chiller/      |
+| README.md "What still needs doing" — multi-region split is the next         |
+| deliverable on Gap 2 (docs/known_gaps.md#pche-geometry).                    |
+|                                                                             |
+| Once the gas region is meshed (snappyHexMeshDict needs a second             |
+| `locationInMesh` or a `cellZones` directive making the tube interior a     |
+| named cellZone, then splitMeshRegions splits it out), this file becomes     |
+| live: chtMultiRegionFoam reads it to discover the regions to step.          |
+|                                                                             |
+| Reference:                                                                  |
+|   docs/known_gaps.md#pche-geometry                                          |
+|   docs/02_phase2_cfd_rom.md § 2.5                                           |
+|   OpenFOAM tutorial: heatTransfer/chtMultiRegionFoam/multiRegionHeater      |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      regionProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+regions
+(
+    // Inside the helical tube — supercritical CO2 (high pressure, hot side).
+    // Created by splitMeshRegions from a `gas_zone` cellZone tagged inside
+    // the tube interior (snappyHexMeshDict TODO: add a refinementRegion
+    // with `mode inside` keyed off helical_tube.stl, then `splitMeshRegions
+    // -cellZones` separates it from the shell-side cells).
+    fluid       (gas liquid)
+
+    // No solid region in the chiller scaffold yet. The tube wall is treated
+    // as a thermal-interface patch (regionCoupling) between gas and liquid
+    // rather than meshed as a separate solid. Promote tube_wall to a thin
+    // solid region only if axial conduction along the tube wall turns out
+    // to be a finding — Wright2010 § 3 uses thin-wall assumption.
+    solid       ()
+);
+
+// ************************************************************************* //
