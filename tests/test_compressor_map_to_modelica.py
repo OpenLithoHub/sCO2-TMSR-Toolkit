@@ -27,6 +27,7 @@ from tools.compressor_map_to_modelica import (  # noqa: E402
 
 
 SHIPPING_CSV = REPO_ROOT / "validation" / "compressor_maps" / "sandia_main_compressor.csv"
+SHIPPING_TURBINE_CSV = REPO_ROOT / "validation" / "turbine_maps" / "sandia_main_turbine.csv"
 
 
 def test_shipping_csv_parses_to_nine_rows():
@@ -94,4 +95,22 @@ def test_shipping_csv_round_trips_through_main(tmp_path):
     assert rc == 0
     expected = (REPO_ROOT / "validation" / "compressor_maps"
                 / "sandia_main_compressor.txt").read_text()
+    assert out.read_text() == expected
+
+
+def test_turbine_csv_parses_to_nine_rows():
+    """Same converter handles the BYOD turbine map (Gap 1 symmetric extension)."""
+    rows = parse_csv(SHIPPING_TURBINE_CSV)
+    assert len(rows) == 9
+    assert rows[0].phi == 0.012
+    assert rows[-1].phi == 0.040
+
+
+def test_turbine_csv_round_trips_with_table_name(tmp_path):
+    """Turbine CSV round-trips byte-for-byte with --table-name turbine_map."""
+    out = tmp_path / "regen.txt"
+    rc = main([str(SHIPPING_TURBINE_CSV), "-o", str(out), "--table-name", "turbine_map"])
+    assert rc == 0
+    expected = (REPO_ROOT / "validation" / "turbine_maps"
+                / "sandia_main_turbine.txt").read_text()
     assert out.read_text() == expected

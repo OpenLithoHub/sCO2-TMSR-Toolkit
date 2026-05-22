@@ -1,0 +1,26 @@
+# sCO2 turbine BYOD off-design map — engineering placeholder.
+#
+# Source: Wright2010 SAND2010-0171 §3 design point — turbine inlet
+# (T=811 K, P=13.85 MPa, mdot=3.5 kg/s) and ω=75 000 rpm. The wheel
+# radius is the same Table 5.1 r_tip class as the main compressor for
+# the SNL 10 MWe loop (see Compressor.mo), so the design φ_design lies
+# in the same 0.02–0.03 band; the surrounding rows follow the generic
+# centripetal-turbine surge-to-choke shape (Whitfield & Baines 1990
+# textbook: ψ falls monotonically from choke side, η has a rounded
+# peak ~5 % wide of design).
+#
+# This is a documented placeholder — Confidence C — concept-validation
+# only. Industrial users replace this CSV with their proprietary map.
+# CSV columns: phi (flow coefficient, -), psi (head coefficient, -),
+#              eta (isentropic efficiency, -)
+# Reference: docs/00_strategy.md § Black Hole 1; docs/known_gaps.md#compressor-maps.
+phi,psi,eta
+0.012,1.05,0.74
+0.016,1.00,0.82
+0.020,0.94,0.88
+0.024,0.88,0.90
+0.026,0.85,0.90
+0.028,0.81,0.89
+0.032,0.74,0.85
+0.036,0.66,0.79
+0.040,0.55,0.70
