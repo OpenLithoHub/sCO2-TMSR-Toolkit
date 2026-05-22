@@ -430,8 +430,8 @@ validation MAPE is >10% and you have reliable T_wall data from CFD.
 **Upstream physical-constraint references (already on local disk):**
 
 - `Vrancik1968_NASA_TN_D4849` — *Prediction of windage power loss in alternators*, NASA-TN-D-4849.
-  Primary source for the rotor-windage formula `P = π·C_d(Re)·ρ·r⁴·ω³·L_r` cited indirectly by Wright2010 §5.4.
-  Once read-through is complete, this becomes a candidate **soft-physical constraint** for any future turbomachinery-side ROM extension (windage power as a sanity check on shaft-power predictions).
+  Primary source for the rotor-windage formula `W = π·C_d(Re)·ρ·R⁴·ω³·L` (Eq. 5, p.5) with turbulent skin-friction closure `1/√C_d = 2.04 + 1.768·ln(Re·√C_d)` (Eq. 6, p.6). Vrancik reports a **7 % maximum experimental error** on a smooth cylindrical rotor in a slotted alternator stator (§ "Experimental verification", p.6) — this is the empirical tolerance band any soft-physical constraint should adopt.
+  Single-pass extracted 2026-05-22; cite is **direct (Confidence A)**, no longer indirect via Wright2010 §5.4.
   See [`docs/data_extracts/vrancik1968_nasa-tn-d4849.md`](data_extracts/vrancik1968_nasa-tn-d4849.md).
 - `Wright2010_SAND2010_0171` Table 5.1 (main-compressor wheel geometry: tip diameter, blade angles, exducer width) — usable as a real-engineering-scale geometry baseline for `case03_airfoil_channel` once the PCHE pipeline is generalized to turbomachinery cascades.
   See `docs/data_extracts/wright2010_sand2010-0171.md`, "§5.5 Egli labyrinth seal" / "Table 5.1 main-compressor wheel" entries.

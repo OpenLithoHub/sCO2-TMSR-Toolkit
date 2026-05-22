@@ -36,6 +36,40 @@
 #   future). Confidence B (Table 2-1 row, modelled) per
 #   docs/data_extracts/wright2011_sand2010-8840.md § 2.2. Tag
 #   `_modelled` distinguishes from Wright2010 measured rows.
+# - Rows 10-17 (NEW, 2026-05-22): Wright2011 SAND2010-8840 Table 2-1, p.21 —
+#   8 *modelled* state-point rows (Stn 1Sat.Liq, 2, 3, 4, 5a, 5b, 6a, 6b)
+#   transcribed verbatim with rho_inlet_measured = paper rho. These are
+#   modelled cycle points (Excel solver via NIST REFPROP), so the
+#   rho check is in effect a CoolProp ↔ REFPROP cross-check. Confidence
+#   A: the (T, P, ρ) trio is locked together in a property table, so
+#   transcription drift would be visible immediately. Spot-check at
+#   transcription time: max error 0.86 % (Stn 6a), 0.00 % at 5 of 8
+#   stations — well within the 5 % CI gate.
+#   *Excluded* from rho gating: Stn 5c, 6c, 7, 8, 1Sat.Vap. These rows
+#   in Table 2-1 reuse the previous-stage densities (e.g. Stn 7 paper
+#   says 98.86 kg/m³ at 432.89 K / 6.083 MPa, which CoolProp computes
+#   as 80.82 kg/m³ — a 22 % gap). Investigation suggests an Excel
+#   copy-paste artifact in the original SAND table; we keep (T, P)
+#   for completeness but blank rho_inlet_measured so the validator
+#   skips the density check.
+# - Rows 18-19 (NEW, 2026-05-22): Wright2011 SAND2010-8840 Table 4-1, p.28 —
+#   2 *measured* condensing-loop pairs (Mass-flow 1 kg/s; tagged
+#   `_meas`). These are the first measured Wright2011 rows in this
+#   CSV. ρ not reported by Table 4-1 (paper tabulates T, P, s, h),
+#   so rho_inlet_measured left blank. Two pairs: state 1→2 is the
+#   compressor (T 302→309 K, P 7.1→9.0 MPa); state 3→4 is the
+#   throttling valve (T 314→302 K, P 9.0→7.1 MPa, isenthalpic per
+#   the § 4 narrative immediately after the table). Independent
+#   cross-check: CoolProp h(T,P) for states 1, 2, 3 has a constant
+#   offset of ~12–15 kJ/kg vs. the paper's h column (different
+#   reference state — CoolProp IIR vs. paper's likely NIST), so the
+#   *enthalpy difference* h_2 − h_1 from CoolProp matches the paper
+#   to ~2 kJ/kg. State 4 in the paper (h=340 at T=302 K / 7.1 MPa)
+#   conflicts with state 1 (h=280 at the same T, P) — investigation
+#   suggests Table 4-1 rounds states 1 and 4 to the same (T, P)
+#   while their h values differ by ~60 kJ/kg, which cannot be
+#   physically true. Logged anyway for traceability; do not use the
+#   T_outlet/P_outlet columns of row 19 for any quantitative claim.
 #
 # - Row 5: Section 5.3.1, p.54 — spin-test CBC_081202_1003 measured
 #   inlet conditions (304.4 K / 7.536 MPa). Outlet pressure peak 12.1 MPa
@@ -70,3 +104,18 @@ T_inlet_K,P_inlet_Pa,T_outlet_K,P_outlet_Pa,rho_inlet_measured,efficiency_measur
 305.0,7690000,323.0,13840000,,,Wright2010_SAND_F5.13_design
 324.659,13984000,,,670.0,,Wright2010_SAND_S2.3_outlet
 295.00,5982170,316.08,20685000,,0.90,Wright2011_SAND_T2.1_stn1to2_modelled
+295.00,6032000,,,752.56,,Wright2011_SAND_T2.1_stn1SatLiq_modelled
+316.08,20685000,,,830.79,,Wright2011_SAND_T2.1_stn2_modelled
+428.89,20513000,,,325.82,,Wright2011_SAND_T2.1_stn3_modelled
+512.04,20342000,,,230.37,,Wright2011_SAND_T2.1_stn4_modelled
+588.15,20172000,,,186.90,,Wright2011_SAND_T2.1_stn5a_modelled
+559.66,15493000,,,151.80,,Wright2011_SAND_T2.1_stn6a_modelled
+588.15,15364000,,,142.28,,Wright2011_SAND_T2.1_stn5b_modelled
+551.12,10814000,,,108.02,,Wright2011_SAND_T2.1_stn6b_modelled
+588.15,10723000,,,,,Wright2011_SAND_T2.1_stn5c_modelled_excluded
+531.63,6134000,,,,,Wright2011_SAND_T2.1_stn6c_modelled_excluded
+432.89,6083000,,,,,Wright2011_SAND_T2.1_stn7_modelled_excluded
+319.08,6032000,,,,,Wright2011_SAND_T2.1_stn8_modelled_excluded
+295.00,6032000,,,,,Wright2011_SAND_T2.1_stn1SatVap_modelled_excluded
+302.0,7100000,309.0,9000000,,,Wright2011_SAND_T4.1_st1to2_meas
+314.0,9000000,302.0,7100000,,,Wright2011_SAND_T4.1_st3to4_meas

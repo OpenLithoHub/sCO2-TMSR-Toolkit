@@ -61,7 +61,7 @@ is set by:
 | 1 | `SpanWagner1996_CO2_EOS` | Span & Wagner CO₂ reference EOS, *J. Phys. Chem. Ref. Data* 25(6) 1509 | https://doi.org/10.1063/1.555991 | P0 | **blocked** | 2026-05-21 | AIP publisher behind Cloudflare WAF; both direct + proxy return 403. Re-attempt via institutional access or NIST Standard Reference Data instead. |
 | 2 | `Vrancik1968_NASA_TN_D4849` | Prediction of windage power loss in alternators, NASA TN D-4849 | https://ntrs.nasa.gov/citations/19680027690 | P0 | **downloaded** | 2026-05-21 | NTRS direct. 749 KB / 21 pages. EOF verified. |
 | 3 | `Wright2011_SAND2010_8840` | Wright, Radel, Conboy, Rochau — Modeling and Experimental Results for Condensing sCO2 Power Cycles, SAND2010-8840 | https://www.osti.gov/biblio/1030354 | P0 | **extracted** | 2026-05-22 | OSTI biblio 1030354 in fact dereferences to SAND2010-8840 (Jan 2011 LDRD, condensing cycles for LWRs), not SAND2011-7779 ("Overview…") which was the original mis-keyed entry. PDF on disk; first-pass extract done — see `wright2011_sand2010-8840.md`. |
-| 4 | `Conboy2014_SAND2014_2098` | Conboy et al., Performance Characteristics of an Operating sCO2 Brayton Cycle, SAND2014-2098 | https://www.osti.gov/biblio/1177045 | P0 | **downloaded** | 2026-05-21 | OSTI direct. 2.6 MB. EOF verified. |
+| 4 | `Conboy2014_SAND2014_2098` | Conboy et al., Performance Characteristics of an Operating sCO2 Brayton Cycle, SAND2014-2098 | https://www.osti.gov/biblio/1177045 | P0 | **blocked** | 2026-05-22 | **Source-identity error (2026-05-22):** PDF at OSTI 1177045 is in fact SAND2014-3136 *"Effects of Increasing Tip Velocity on Wind Turbine Rotor Design"* by Resor/Maniaci/Berg/Richards — NOT a sCO₂ paper. Original 2026-05-21 row keyed the OSTI biblio ID 1177045 to a Conboy/Wright/Pasch sCO₂ title borrowed from a separate cite. OSTI search API queries (`Conboy+Wright+Pasch`, `Conboy+Pasch+Brayton+SAND2014`, `Conboy+sCO2+Brayton+performance+characteristics`) return no public Conboy/Wright/Pasch publication with that title — likely an ASME Turbo Expo or non-OSTI conference paper. BibTeX key retired in `docs/references.bib`; extract doc rewritten as a retirement notice; downstream cites (Gap 1, Gap 5, 00_strategy.md, 01_phase1_properties.md) cleaned up. Local PDF deleted (wind-turbine report, not useful here). Future genuine Conboy/Wright/Pasch sCO₂ acquisition will use a *new* BibTeX key (e.g., `Conboy2014_ASME_GT2014`). |
 | 5 | `Conboy2012_LDRD_10MWe` | Conboy et al., Modeling of a sCO2 Power Cycle for Nuclear Energy Applications, SAND/LDRD 2012 | search OSTI: `Conboy 10 MWe recompression sCO2` | P1 | **blocked** | 2026-05-21 | No matching OSTI biblio entry found by author/topic search. Likely SNL-internal LDRD that was never publicly released; supersede with Conboy2014 + later post-2018 OSTI biblio (`1574791`, `1543307`) which cover the 10 MWe cycle modeling work. |
 | 6 | `Dostal2004_MIT_PhD` | V. Dostal, A Supercritical CO₂ Cycle for Next Generation Nuclear Reactors, MIT PhD thesis 2004 | https://web.mit.edu/22.33/www/dostal.pdf | P1 | **downloaded** | 2026-05-22 | MIT DSpace canonical (`dspace.mit.edu/handle/1721.1/17746`) returns CloudFront WAF 405 captcha; recovered via `web.mit.edu/22.33/www/dostal.pdf` + local HTTP proxy + curl `-C -` resume. 6.6 MB. EOF verified. |
 | 7 | `Kim2014_NED_PCHE` | Kim, Lee, Kim, Cha, *Nucl. Eng. Des.* 270 (2014) 73–81 | https://doi.org/10.1016/j.nucengdes.2014.01.006 | P1 | **blocked** | 2026-05-21 | Elsevier sciencedirect paywall via `linkinghub`. Open-access version not found on author webpage. Substitute candidate: any NRELOSTI numerical-investigation paper on PCHE zigzag channels. Re-attempt via institutional access. |
@@ -271,3 +271,51 @@ Template:
     updated; Causey + Forcey demoted to context-only references.
   - SAND2008-1141 Causey row remains absent from candidate-source
     table — re-add only if a publicly indexed copy is located.
+
+### 2026-05-22 — `Conboy2014_SAND2014_2098` (correction — source-identity error)
+
+- **Method:** cover-page verification of the local PDF + OSTI metadata
+  + OSTI search API.
+- **What was checked:**
+  - `pdftotext -layout -f 1 -l 2 ~/Downloads/Conboy2014_SAND2014_2098.pdf`
+    → cover-page title is *"Effects of Increasing Tip Velocity on Wind
+    Turbine Rotor Design"*, authors Resor / Maniaci / Berg / Richards,
+    SAND2014-3136.
+  - `curl -sL "https://www.osti.gov/biblio/1177045"` →
+    `citation_technical_report_number: SAND2014--3136` (confirms the
+    biblio ID was always pointing at the wind-turbine report, not a
+    Conboy/Wright/Pasch sCO₂ paper).
+  - OSTI search API queries `Conboy+Wright+Pasch`,
+    `Conboy+Pasch+Brayton+SAND2014`,
+    `Conboy+sCO2+Brayton+performance+characteristics` → no public match
+    for the alleged Conboy/Wright/Pasch sCO₂ paper. It is plausibly an
+    ASME Turbo Expo or SAND conference paper that was never deposited
+    on OSTI.
+- **Outcome:** the BibTeX key `Conboy2014_SAND2014_2098` was always
+  invalid in this repo. The original 2026-05-21 row in this log keyed
+  the OSTI biblio ID 1177045 to a Conboy/Wright/Pasch title (and
+  matching SAND number) that came from a separate cite — the biblio ID
+  was *correct for SAND2014-3136*, the title and SAND number were
+  *wrong*. Mirror of the same defect that afflicted the original
+  Wright2011 row (correct OSTI ID, wrong title/SAND).
+- **Next action:**
+  - BibTeX entry removed from `docs/references.bib`.
+  - Extract doc `docs/data_extracts/conboy2014_sand2014-2098.md`
+    rewritten as a retirement notice with the full forensic trail.
+  - Candidate-source table row 4 updated to `status = blocked` with the
+    correction summary (this attempt record is the long form).
+  - Downstream cites cleaned up: `docs/00_strategy.md` § BYOD, 
+    `docs/01_phase1_properties.md` § SNL, `docs/known_gaps.md` Gap 1 +
+    Gap 5 upstream lines.
+  - Local PDF deleted from `~/Downloads/` (wind-turbine report, not
+    useful here).
+  - **Future genuine acquisition** of a real Conboy/Wright/Pasch sCO₂
+    paper will use a *new* BibTeX key (e.g., `Conboy2014_ASME_GT2014`
+    once the venue is confirmed) — do not re-use the retired
+    `Conboy2014_SAND2014_2098` key.
+  - **Process improvement:** as with the Wright2011 case, future
+    acquisition rows should run
+    `curl -sL "<osti-url>" | grep citation_technical_report_number`
+    and compare to the table-row SAND number *before* committing the
+    BibTeX entry. This would have caught both errors in seconds.
+
