@@ -1,0 +1,78 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| Reference: docs/02_phase2_cfd_rom.md § 2.5 +                                |
+|            docs/data_extracts/wright2010_sand2010-0171.md "Table 3.2".      |
+|                                                                             |
+| ⚠  PLACEHOLDER — straight-tube approximation of the helical gas chiller    |
+| coil. Real geometry per Wright2010 SAND2010-0171 Table 3.2 (p.30):          |
+|     tube OD 38.1 mm, wall 2.4 mm, single-coil length 19.15 m,               |
+|     coil pitch 101.6 mm.                                                    |
+|                                                                             |
+| This dict represents the gas-side flow path as a straight tube with the     |
+| same inner diameter (33.3 mm) and length (19.15 m). Helical curvature      |
+| effects (Dean number, secondary flow) are NOT captured. Real Phase 2       |
+| run will swap this for snappyHexMesh on a generated helical-coil STL —     |
+| see README.md "What still needs doing".                                     |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      blockMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+scale 0.001;   // mm → m
+
+// Cross-section: 33.3 mm gas-side ID approximated as 33.3 × 33.3 mm square
+// (preserves hydraulic diameter ≈ 33.3 mm for a square channel; the
+// 3.33 mm gas hydraulic diameter in Wright2010 Table 3.2 is the *finned*
+// hydraulic diameter — out of scope for this straight-tube placeholder).
+// Length: 19.15 m = 19150 mm.
+vertices
+(
+    (0      0      0)        // 0
+    (19150  0      0)        // 1
+    (19150  33.3   0)        // 2
+    (0      33.3   0)        // 3
+    (0      0      33.3)     // 4
+    (19150  0      33.3)     // 5
+    (19150  33.3   33.3)     // 6
+    (0      33.3   33.3)     // 7
+);
+
+blocks
+(
+    // Coarse axial mesh — a 19 m channel needs many cells. Refine before
+    // any production run; placeholder values target a smoke test only.
+    hex (0 1 2 3 4 5 6 7) (400 20 20) simpleGrading (1 1 1)
+);
+
+boundary
+(
+    inlet
+    {
+        type patch;
+        faces ((0 4 7 3));
+    }
+    outlet
+    {
+        type patch;
+        faces ((1 2 6 5));
+    }
+    wall
+    {
+        type wall;
+        faces
+        (
+            (0 1 5 4)
+            (3 7 6 2)
+            (0 3 2 1)
+            (4 5 6 7)
+        );
+    }
+);
+
+mergePatchPairs ();
+
+// ************************************************************************* //

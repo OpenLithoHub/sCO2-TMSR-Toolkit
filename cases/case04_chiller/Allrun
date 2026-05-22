@@ -1,0 +1,17 @@
+#!/bin/sh
+# Allrun for case04_chiller
+# Reference: docs/02_phase2_cfd_rom.md § 2.5 +
+#            docs/data_extracts/wright2010_sand2010-0171.md "Table 3.2".
+#
+# PLACEHOLDER PIPELINE — see README.md "What still needs doing".
+# The real chiller geometry is helical; this script currently runs the
+# straight-tube approximation only. Replace `blockMesh` with snappyHexMesh
+# on a helical-coil STL once the CAD generator is in place.
+set -e
+cd "${0%/*}" || exit 1
+
+# Source OpenFOAM environment if needed: . $WM_PROJECT_DIR/etc/bashrc
+runApplication blockMesh
+runApplication checkMesh
+runApplication buoyantPimpleFoam
+echo "case04_chiller: done (straight-tube placeholder)."
