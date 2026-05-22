@@ -53,6 +53,22 @@ After regeneration, diff the resulting CSVs against the previous
 commit. A status-cell delta indicates the new CoolProp release
 shifted the failure boundary; that delta is itself worth reporting.
 
+Use `diff_status_codes.py` for a structured cell-by-cell comparison:
+
+```bash
+# Diff working tree against the committed snapshot
+python validation/failure_envelopes/diff_status_codes.py \
+    validation/failure_envelopes/co2_he_3pct.csv --git-ref HEAD
+
+# Or compare two arbitrary snapshots
+python validation/failure_envelopes/diff_status_codes.py \
+    new.csv --old prior.csv
+```
+
+Exits 0 if no cells flipped, 1 if any flipped (with a summary table),
+2 if the two grids have incompatible (T, P) shape (e.g. one was
+regenerated with a different `--grid`).
+
 ## Headline finding (current snapshot, CoolProp 7.2.0)
 
 CO₂ + Helium failure rate scales sharply with He content; the open
