@@ -68,6 +68,8 @@ is set by:
 | 8 | `Held2025_BYU_pilot` | Extended Duration Operation of a Pilot-Scale sCO₂ Test Loop (BYU/Echogen 1.26 MWth pilot, San Rafael Energy Research Center) | https://www.osti.gov/biblio/2575689 | P2 | **transcribed** | 2026-05-22 | Originally logged as `Allison2025_STEP_extended` on the assumption it was a substitute for the unreleased DOE STEP Phase 1 final report. Source-identity correction 2026-05-22: paper is in fact the BYU/Echogen pilot (DOE FE award DE-FE0031928), not STEP. BibTeX key + extract doc + CSV all renamed. Table 2 transcribed into `BYU_pilot_data.csv`; CoolProp enthalpy agrees with paper h to ≤ 0.03 % at all 10 state points. |
 | 9 | `Galvas1973_NASA_TN_D7487` | Galvas, Centrifugal compressor design code (CCODP), NASA TN D-7487 | https://ntrs.nasa.gov/citations/19730019918 | P3 | pending | — | Indirect cite. NASA-TR — should follow the same NTRS API path that worked for Vrancik. Defer until ROM physical constraints become a near-term task. |
 | 10 | `Ngo2007_ETFS_PCHE` | Ngo et al., *Exp. Therm. Fluid Sci.* 32 (2007) 560–570 | https://doi.org/10.1016/j.expthermflusci.2007.06.006 | P3 | pending | — | Elsevier paywall expected; bundle attempt with future Kim2014 retry. |
+| 11 | `Humrickhouse2012_INL_EXT_11_23265` | Humrickhouse et al., Tritium Permeability of Incoloy 800H and Inconel 617, INL/EXT-11-23265 Rev.1 | https://www.osti.gov/biblio/1056010 | P0 | **extracted** | 2026-05-22 | OSTI direct purl/1056010, 2.27 MB, EOF verified. Anchors Gap 4 Worst/Best Inconel 617 envelope (Table 1 p.13 ref [11] + § 4 conclusions p.43). Originally pursued via Causey SAND2008-1141 — that report not publicly indexed by OSTI search API; Humrickhouse2012 substituted as the primary US-public source. |
+| 12 | `Calderoni2010_INL_EXT_10_19387` | Calderoni & Ebner, Hydrogen Permeability of Incoloy 800H, Inconel 617, and Haynes 230, INL/EXT-10-19387 | https://www.osti.gov/biblio/989876 | P1 | **downloaded** | 2026-05-22 | OSTI direct purl/989876, 2.79 MB, EOF verified. Companion to Humrickhouse2012; held as cross-check for the Worst-case Inconel 617 envelope. Cover-page-only read-through 2026-05-22; values not yet transcribed. |
 
 Ordering rule: P0 sources unblock CSV transcription work in flight; P1
 unblocks the next `case0X` or Modelica milestone; P2 are nice-to-haves.
@@ -232,3 +234,40 @@ Template:
   - Future STEP Phase 1 final, when released, will get a *new*
     BibTeX key and a *new* `STEP_phase1_data.csv`. Do **not**
     back-fill BYU pilot rows under that filename.
+
+### 2026-05-22 — `Humrickhouse2012_INL_EXT_11_23265` + `Calderoni2010_INL_EXT_10_19387` (Gap 4 anchor swap)
+
+- **Method:** OSTI search API + direct PDF fetch (no proxy needed).
+- **Background:** Gap 4 (Tritium permeation envelope in
+  `TritiumPermeationLayer.mo`) originally cited Causey et al.
+  *Tritium Barriers and Permeation* SAND2008-1141 + Forcey 1988
+  *J. Nucl. Mater.* as the literature anchor. Causey SAND2008-1141 is
+  **not publicly indexed by the OSTI search API** (queried with
+  `Causey+tritium+barriers+permeation`, `Causey+Karnesky+Cowgill+SAND2008`,
+  `Tritium Barriers and Tritium Diffusion`, `report_number=SAND2008-1141`
+  — no matches). Forcey 1988 is paywalled at *J. Nucl. Mater.* without
+  an open-access mirror. **Substituted** as the primary anchor with
+  the OSTI-indexed INL pair below — both directly measure Inconel 617
+  hydrogen / tritium permeability with the same experimental apparatus.
+- **Commands:**
+  - `curl -L --http1.1 --max-time 300 -o ~/Downloads/Hu2011_INL_INL-EXT-11-23265.pdf "https://www.osti.gov/servlets/purl/1056010"` — 2 265 232 bytes, %%EOF verified.
+  - `curl -L --http1.1 --max-time 300 -o ~/Downloads/Stutzke2010_INL_INL-EXT-10-19387.pdf "https://www.osti.gov/servlets/purl/989876"` — 2 787 172 bytes, %%EOF verified.
+- **Outcome:** both PDFs on disk, both single-shot direct, no proxy
+  needed. Humrickhouse2012 single-pass read-through (cover, body
+  pp.10–47, Appendix B); cover-page-only for Calderoni2010 (held as
+  cross-check, values not transcribed).
+- **Next action:**
+  - BibTeX entries `Humrickhouse2012_INL_EXT_11_23265` and
+    `Calderoni2010_INL_EXT_10_19387` added.
+  - Extract documents `humrickhouse2012_inl-ext-11-23265.md` (full)
+    and `calderoni2010_inl-ext-10-19387.md` (index-only) created.
+  - `TritiumPermeationLayer.mo` Worst defaults updated to
+    Φ₀=7.04e-6 mol·m⁻¹·s⁻¹·Pa⁻⁰·⁵, Eₐ=89.1 kJ/mol (Humrickhouse Table 1
+    p.13 ref [11], unit conversion ÷7.66e4 + 1 kcal/mol = 4.184 kJ/mol).
+    Best defaults updated to Φ₀=7.04e-8, Eₐ=89.1 kJ/mol per § 4
+    conclusions p.43 ("approximately two orders of magnitude lower
+    … attributed to Cr₂O₃ surface oxide").
+  - `docs/known_gaps.md` Gap 4 status / placeholder / upstream lines
+    updated; Causey + Forcey demoted to context-only references.
+  - SAND2008-1141 Causey row remains absent from candidate-source
+    table — re-add only if a publicly indexed copy is located.

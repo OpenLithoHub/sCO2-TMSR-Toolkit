@@ -27,20 +27,31 @@ model TritiumPermeationLayer
   parameter Integer preset = 1
     "1=Worst, 2=Best, 3=Custom — see docs/known_gaps.md#tritium-constants";
 
-  // Worst-Case constants (no oxide barrier; Causey SAND2008-1141 upper
-  // envelope for Inconel-series alloys; Φ₀ ≈ 2e-6 mol·m⁻¹·s⁻¹·Pa⁻⁰·⁵,
-  // Eₐ ≈ 42 kJ/mol).
-  parameter Real Phi_0_worst = 2.0e-6
-    "Worst-case Φ₀ (mol·m⁻¹·s⁻¹·Pa⁻⁰·⁵) — no oxide barrier";
-  parameter Modelica.Units.SI.MolarEnergy E_a_worst = 42e3
-    "Worst-case Eₐ (J/mol) — no oxide barrier";
+  // Worst-Case constants (no oxide barrier).
+  // Anchor: Humrickhouse 2012 INL/EXT-11-23265 Table 1, p.13, ref [11]
+  // (Mori 1974), the highest-K0 of three independent literature values
+  // for hydrogen permeability of Inconel 617:
+  //   K0 = 5.39e-1 cm^3 H2 (STP) / (cm s atm^0.5)  (table footnote
+  //                                                 conversion: ÷ 7.66e4
+  //                                                 → 7.04e-6 SI),
+  //   Q  = 21.3 kcal/mol                            (× 4.184 = 89.1 kJ/mol).
+  // Confidence A.
+  parameter Real Phi_0_worst = 7.04e-6
+    "Worst-case Φ₀ (mol·m⁻¹·s⁻¹·Pa⁻⁰·⁵) — no oxide; Humrickhouse2012 T1 p.13 ref[11]";
+  parameter Modelica.Units.SI.MolarEnergy E_a_worst = 89.1e3
+    "Worst-case Eₐ (J/mol) — no oxide; Humrickhouse2012 T1 p.13 ref[11]";
 
-  // Best-Case constants (intact oxide barrier; Forcey J. Nucl. Mater. 1988
-  // lower envelope; Φ₀ ≈ 2e-8 mol·m⁻¹·s⁻¹·Pa⁻⁰·⁵, Eₐ ≈ 55 kJ/mol).
-  parameter Real Phi_0_best = 2.0e-8
-    "Best-case Φ₀ (mol·m⁻¹·s⁻¹·Pa⁻⁰·⁵) — intact oxide barrier";
-  parameter Modelica.Units.SI.MolarEnergy E_a_best = 55e3
-    "Best-case Eₐ (J/mol) — intact oxide barrier";
+  // Best-Case constants (intact oxide barrier).
+  // Anchor: Humrickhouse 2012 INL/EXT-11-23265 § 4 conclusions p.43:
+  // "approximately two orders of magnitude lower than previously
+  // measured for hydrogen", attributed to Cr2O3 surface oxide. Eₐ
+  // unchanged on the working hypothesis that oxide reduces magnitude
+  // (K0) rather than the activation energy of the rate-limiting step.
+  // Confidence A.
+  parameter Real Phi_0_best = 7.04e-8
+    "Best-case Φ₀ (mol·m⁻¹·s⁻¹·Pa⁻⁰·⁵) — intact oxide (Worst ÷100); Humrickhouse2012 §4 p.43";
+  parameter Modelica.Units.SI.MolarEnergy E_a_best = 89.1e3
+    "Best-case Eₐ (J/mol) — same Arrhenius slope; Humrickhouse2012 §4 p.43";
 
   // Custom channel — user must cite source in any published result.
   parameter Real Phi_0_user = 2.0e-7
@@ -112,8 +123,18 @@ equation
 
     <h5>References</h5>
     <ul>
-      <li>Causey et al., <i>Tritium Barriers and Permeation</i>, SAND2008-1141</li>
-      <li>Forcey et al., <i>J. Nucl. Mater.</i> (1988) — Inconel-series permeability data</li>
+      <li>Humrickhouse, Pawelko, Shimada, Winston,
+          <i>Tritium Permeability of Incoloy 800H and Inconel 617</i>,
+          INL/EXT-11-23265 Rev. 1 (2012) — primary anchor for the
+          Worst-case (Table 1 ref [11]) and Best-case (§ 4 conclusions,
+          two-orders-of-magnitude oxide reduction) Arrhenius envelopes.</li>
+      <li>Calderoni, Ebner,
+          <i>Hydrogen Permeability of Incoloy 800H, Inconel 617, and
+          Haynes 230 Alloys</i>, INL/EXT-10-19387 (2010) — companion
+          FY-10 hydrogen-only report; cross-check.</li>
+      <li>Causey et al., <i>Tritium Barriers and Permeation</i>,
+          SAND2008-1141 — secondary review reference (PDF not publicly
+          indexed by OSTI; cited for context only).</li>
     </ul>
 
     <h5>Validation strategy</h5>

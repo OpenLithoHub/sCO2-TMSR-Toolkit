@@ -56,11 +56,11 @@
 ## Gap 4 — Tritium permeation material constants  <a id="tritium-constants"></a>
 
 **Phase:** 3 (`Components/HeatExchangers/TritiumPermeationLayer.mo`).
-**Status:** Best/Worst/Custom preset wrapper implemented (2026-05-22); literature-bracketed defaults indicative only — second-pass verification of upper/lower envelope values pending.
+**Status:** Best/Worst/Custom preset wrapper implemented (2026-05-22); upper/lower envelope re-anchored to a single primary source (Humrickhouse2012 INL/EXT-11-23265, OSTI 1056010, single-pass extracted 2026-05-22).
 **Where it bites:** Reported tritium permeability for Inconel 617 (Φ₀, Eₐ) varies by 10×–100× across papers because surface oxide layers dominate the result.
-**Current placeholder:** the Modelica component selects between three presets via `parameter Integer preset` (1=Worst_Case no-oxide upper bound, 2=Best_Case intact-oxide lower bound, 3=Custom). Worst defaults Φ₀=2e-6 / Eₐ=42 kJ/mol, Best defaults Φ₀=2e-8 / Eₐ=55 kJ/mol; both are **indicative envelope values** anchored to Causey SAND2008-1141 + Forcey 1988 narrative ranges — not single-source-traceable yet. Custom channel exposes `Phi_0_user` / `E_a_user` and requires the caller to cite their source.
+**Current placeholder:** the Modelica component selects between three presets via `parameter Integer preset` (1=Worst_Case no-oxide upper bound, 2=Best_Case intact-oxide lower bound, 3=Custom). Worst defaults Φ₀=7.04e-6 mol·m⁻¹·s⁻¹·Pa⁻⁰·⁵ / Eₐ=89.1 kJ/mol — taken from [`Humrickhouse2012_INL_EXT_11_23265`] Table 1, p.13, ref [11] (Mori 1974), the highest-K₀ of three independent literature values for Inconel 617 hydrogen permeability (table-footnote unit conversion: ÷7.66e4 from cm³(STP)/(cm·s·atm⁰·⁵) → SI). Best defaults Φ₀=7.04e-8 / Eₐ=89.1 kJ/mol — same Arrhenius slope, K₀ reduced by ×100 per the same report's § 4 conclusions ("approximately two orders of magnitude lower than previously measured for hydrogen … attributed to Cr₂O₃ surface oxide", p.43). Custom channel exposes `Phi_0_user` / `E_a_user` and requires the caller to cite their source.
 **Escape strategy:** the model bounds the answer rather than predicting an absolute number. Output is *"under the worst documented case, accumulation is X; under the best, Y"*.
-**Upstream:** Causey et al., *Tritium Barriers and Permeation*, SAND2008-1141; Forcey et al., *J. Nucl. Mater.* (1988) — Inconel series data.
+**Upstream:** [`Humrickhouse2012_INL_EXT_11_23265`] (transcribed; Table 1 + § 4 conclusions); [`Calderoni2010_INL_EXT_10_19387`] (companion FY-10 hydrogen-only report, indexed for cross-check). Causey *Tritium Barriers and Permeation* SAND2008-1141 not publicly indexed by OSTI search API; superseded as the primary anchor.
 
 ---
 
