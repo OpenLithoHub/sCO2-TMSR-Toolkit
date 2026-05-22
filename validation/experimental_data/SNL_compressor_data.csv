@@ -25,6 +25,18 @@
 #   compressor outlet for this row. Outlet T2/P2 columns are left blank
 #   because the row's (T, P) IS the outlet state. Tag distinguishes
 #   it from row 4.
+# - Row 9 (NEW): Wright2011 SAND2010-8840 Table 2-1, p.21 — Stn 1→Stn 2
+#   modelled state pair from the LWR-temperature *condensing* cycle
+#   (compressor pumps liquid CO₂; T_inlet=295 K, P_inlet=5.982 MPa,
+#   T_outlet=316.08 K, P_outlet=20.685 MPa, η_compressor=0.90 assumed).
+#   Modelled — not measured — so rho_inlet_measured is intentionally
+#   left blank: validate_against_sandia.py will skip the density gate
+#   for this row but the (T, P, η) state pair is logged for downstream
+#   condensing-cycle work (Modelica `Cycles/CondensingRecompression.mo`,
+#   future). Confidence B (Table 2-1 row, modelled) per
+#   docs/data_extracts/wright2011_sand2010-8840.md § 2.2. Tag
+#   `_modelled` distinguishes from Wright2010 measured rows.
+#
 # - Row 5: Section 5.3.1, p.54 — spin-test CBC_081202_1003 measured
 #   inlet conditions (304.4 K / 7.536 MPa). Outlet pressure peak 12.1 MPa
 #   reported on the same page.
@@ -57,3 +69,4 @@ T_inlet_K,P_inlet_Pa,T_outlet_K,P_outlet_Pa,rho_inlet_measured,efficiency_measur
 304.1,7377000,,,,,Wright2010_SAND_F5.11_perfmap
 305.0,7690000,323.0,13840000,,,Wright2010_SAND_F5.13_design
 324.659,13984000,,,670.0,,Wright2010_SAND_S2.3_outlet
+295.00,5982170,316.08,20685000,,0.90,Wright2011_SAND_T2.1_stn1to2_modelled

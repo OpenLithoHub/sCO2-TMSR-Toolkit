@@ -45,10 +45,10 @@
 ## Gap 3 — Mixture properties at extreme conditions  <a id="mixture-eos"></a>
 
 **Phase:** 1 (CoolProp validation).
-**Status:** failure-envelope sweep planned; not yet executed.
+**Status:** first-pass failure-envelope sweep produced; broader-coverage second pass pending.
 **Where it bites:** For sCO₂ + He or sCO₂ + H₂O at high pressure or near the phase envelope, CoolProp's HEOS backend may fail to converge or raise exceptions.
-**Current placeholder:** `src/sco2_mixture_validation.py` returns `None` and prints a physical warning when the two-phase region is encountered. Failure-envelope contour plots have not yet been produced.
-**Escape strategy:** sweep T-P space and publish a contour plot marking where current open property libraries succeed vs. crash. The boundary itself is a high-value contribution.
+**Current placeholder:** `src/sco2_mixture_validation.py` returns `None` and prints a physical warning when the two-phase region is encountered. First-pass envelope artifacts under `validation/failure_envelopes/`: `co2_he_3pct.{png,csv}` (CO₂ + 3 mol% He, ~54 % of T-P window unsupported) and `co2_h2o_1pct.{png,csv}` (CO₂ + 1 mol% H₂O, ~0.1 % failure). Coverage at additional impurity fractions (e.g. He @ 1 %/5 %, H₂O @ 0.5 %/2 %) and a CoolProp-version-bump regeneration workflow are still pending.
+**Escape strategy:** sweep T-P space and publish a contour plot marking where current open property libraries succeed vs. crash. The boundary itself is a high-value contribution. Reproduction CLI is documented in `validation/failure_envelopes/README.md`.
 **Upstream (blocked):** `SpanWagner1996_CO2_EOS` — AIP/Cloudflare WAF 403 (per `docs/data_extracts/_acquisition_log.md`). Substitute with NIST Standard Reference Data (SRD 23 / REFPROP documentation) which tabulates the same reference values without paywall, and the in-repo `coolprop_self_consistency.csv` for regression detection.
 
 ---
@@ -68,8 +68,8 @@
 
 **Phase:** 1 (CI benchmark).
 **Status:** SNL partially populated (single-pass), STEP placeholder.
-**Where it bites:** the test infrastructure exists (`tests/test_sco2_properties.py`, `src/tools/validate_against_sandia.py`); `validation/experimental_data/SNL_compressor_data.csv` now carries 8 rows transcribed from [`Wright2010_SAND2010_0171`] — 2 with measured density (`Wright2010_SAND_S2.3_pseudocrit` inlet 608 kg/m³ and `Wright2010_SAND_S2.3_outlet` outlet 670 kg/m³) actively gating CoolProp regression at ±5 %, plus 6 (T, P, η) reference rows (see `docs/data_extracts/wright2010_sand2010-0171.md`); `STEP_phase1_data.csv` ships empty (header-only).
-**Current placeholder:** STEP CSV is header-only. `validate_against_sandia.py` exits 0 when no measured rows are found.
+**Where it bites:** the test infrastructure exists (`tests/test_sco2_properties.py`, `src/tools/validate_against_sandia.py`); `validation/experimental_data/SNL_compressor_data.csv` now carries 9 rows — 8 transcribed from [`Wright2010_SAND2010_0171`] (2 with measured density actively gating CoolProp regression at ±5 %, plus 6 (T, P, η) reference rows; see `docs/data_extracts/wright2010_sand2010-0171.md`) and 1 first-pass *modelled* condensing-cycle pair from [`Wright2011_SAND2010_8840`] Table 2-1 Stn 1→2 (`_modelled` tag, ρ left blank so the density gate is skipped); `STEP_phase1_data.csv` ships empty (header-only).
+**Current placeholder:** STEP CSV is header-only. `validate_against_sandia.py` exits 0 when no measured rows are found. Wright2011 row is single-pass modelled — second-pass transcription of remaining Table 2-1 rows + Table 4-1 *measured* condensing rows still pending.
 **Escape strategy:** continue transcribing additional public reports per `docs/citation_protocol.md`. Promote SNL rows from single-pass (current) to two-pass before any release tag. Add STEP rows from `Allison2025_STEP_extended` (substitute) immediately, and from the DOE STEP Phase 1 final report when published.
 **Upstream:** `Wright2010_SAND2010_0171` (transcribed); `Wright2011_SAND2010_8840`, `Conboy2014_SAND2014_2098` (on disk, transcription pending); `Allison2025_STEP_extended` — *Extended Duration Operation of a Pilot-Scale sCO₂ Test Loop*, OSTI 2575689, on disk as the cite-of-record substitute until the DOE STEP Phase 1 final report is released. All four entries indexed in `docs/data_extracts/_acquisition_log.md`.
 
