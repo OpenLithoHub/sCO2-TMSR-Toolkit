@@ -51,3 +51,6 @@ sco2_cp_pseudocritical.png
 .idea/
 .vscode/
 *.swp
+
+# macOS Apple Double files
+._*
