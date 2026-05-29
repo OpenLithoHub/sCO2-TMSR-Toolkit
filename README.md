@@ -8,6 +8,8 @@
 
 **Open-source full-stack toolkit for supercritical CO₂ Brayton cycles coupled to advanced nuclear reactors (TMSR / HTGR).**
 
+> **Status:** Phase 1 (property tools) complete with tests. Phase 2–3 (CFD runs, Modelica compile-checks) are scaffolded but pending external compute / installation. **This toolkit is not validated for reactor safety analysis.**
+
 [![Tests](https://github.com/OpenLithoHub/sCO2-TMSR-Toolkit/actions/workflows/python-tests.yml/badge.svg)](https://github.com/OpenLithoHub/sCO2-TMSR-Toolkit/actions/workflows/python-tests.yml)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
 [![Docs: CC BY-SA 4.0](https://img.shields.io/badge/Docs-CC%20BY--SA%204.0-lightgrey.svg)](LICENSE-DOCS)
