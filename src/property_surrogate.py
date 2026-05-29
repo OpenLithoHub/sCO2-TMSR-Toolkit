@@ -33,6 +33,44 @@ import torch
 import torch.nn as nn
 from torch import Tensor
 
+try:
+    from diff_surrogate.mlp import MonotoneMLP, PositiveOutputMLP
+except ImportError:
+    # Fallback local implementations if diff-surrogate is not installed
+
+    class MonotoneMLP(nn.Module):  # type: ignore[no-redef]
+        """MLP with positive final-layer weights for monotonicity enforcement."""
+
+        def __init__(self, in_dim: int, hidden: int, out_dim: int = 1, n_layers: int = 3) -> None:
+            super().__init__()
+            self.fc1 = nn.Linear(in_dim, hidden)
+            self.fc2 = nn.Linear(hidden, hidden)
+            self.fc3_weight = nn.Parameter(torch.randn(out_dim, hidden) * 0.01)
+            self.fc3_bias = nn.Parameter(torch.zeros(out_dim))
+
+        def forward(self, x: Tensor) -> Tensor:
+            h = torch.relu(self.fc1(x))
+            h = torch.relu(self.fc2(h))
+            w_pos = self.fc3_weight.abs()
+            return nn.functional.linear(h, w_pos, self.fc3_bias)
+
+    class PositiveOutputMLP(nn.Module):  # type: ignore[no-redef]
+        """Standard MLP with softplus output to guarantee positive values."""
+
+        def __init__(self, in_dim: int, hidden: int, out_dim: int = 1, n_layers: int = 3) -> None:
+            super().__init__()
+            self.net = nn.Sequential(
+                nn.Linear(in_dim, hidden),
+                nn.ReLU(),
+                nn.Linear(hidden, hidden),
+                nn.ReLU(),
+                nn.Linear(hidden, out_dim),
+            )
+
+        def forward(self, x: Tensor) -> Tensor:
+            return nn.functional.softplus(self.net(x))
+
+
 __all__ = ["PropertySurrogate"]
 
 # ---------------------------------------------------------------------------
@@ -40,53 +78,6 @@ __all__ = ["PropertySurrogate"]
 # ---------------------------------------------------------------------------
 TC = 304.13  # K
 PC = 7.377e6  # Pa (7.377 MPa)
-
-
-# ---------------------------------------------------------------------------
-# MLP building blocks (from DiffCFD SCO2Surrogate pattern)
-# ---------------------------------------------------------------------------
-
-class _MonotoneMLP(nn.Module):
-    """MLP with positive final-layer weights for monotonicity enforcement.
-
-    The last linear layer has weights constrained positive via abs(),
-    ensuring the output is monotonically non-decreasing with input features.
-    Used for density which must decrease monotonically with temperature.
-    """
-
-    def __init__(self, in_dim: int, hidden: int, out_dim: int) -> None:
-        super().__init__()
-        self.fc1 = nn.Linear(in_dim, hidden)
-        self.fc2 = nn.Linear(hidden, hidden)
-        self.fc3_weight = nn.Parameter(torch.randn(out_dim, hidden) * 0.01)
-        self.fc3_bias = nn.Parameter(torch.zeros(out_dim))
-
-    def forward(self, x: Tensor) -> Tensor:
-        h = torch.relu(self.fc1(x))
-        h = torch.relu(self.fc2(h))
-        w_pos = self.fc3_weight.abs()
-        return nn.functional.linear(h, w_pos, self.fc3_bias)
-
-
-class _PositiveOutputMLP(nn.Module):
-    """Standard MLP with softplus output to guarantee positive values.
-
-    Used for viscosity, thermal conductivity, and specific heat which are
-    physically always positive quantities.
-    """
-
-    def __init__(self, in_dim: int, hidden: int, out_dim: int) -> None:
-        super().__init__()
-        self.net = nn.Sequential(
-            nn.Linear(in_dim, hidden),
-            nn.ReLU(),
-            nn.Linear(hidden, hidden),
-            nn.ReLU(),
-            nn.Linear(hidden, out_dim),
-        )
-
-    def forward(self, x: Tensor) -> Tensor:
-        return nn.functional.softplus(self.net(x))
 
 
 # ---------------------------------------------------------------------------
@@ -125,10 +116,10 @@ class PropertySurrogate:
         in_dim = 2  # (T_normalized, P_normalized)
 
         # 4 independent MLPs, one per property
-        self._density_net = _MonotoneMLP(in_dim, hidden_dim, 1).to(self._device)
-        self._viscosity_net = _PositiveOutputMLP(in_dim, hidden_dim, 1).to(self._device)
-        self._conductivity_net = _PositiveOutputMLP(in_dim, hidden_dim, 1).to(self._device)
-        self._cp_net = _PositiveOutputMLP(in_dim, hidden_dim, 1).to(self._device)
+        self._density_net = MonotoneMLP(in_dim, hidden_dim, 1).to(self._device)
+        self._viscosity_net = PositiveOutputMLP(in_dim, hidden_dim, 1).to(self._device)
+        self._conductivity_net = PositiveOutputMLP(in_dim, hidden_dim, 1).to(self._device)
+        self._cp_net = PositiveOutputMLP(in_dim, hidden_dim, 1).to(self._device)
 
     # ------------------------------------------------------------------
     # Normalization

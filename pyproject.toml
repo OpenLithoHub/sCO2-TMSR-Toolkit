@@ -29,6 +29,8 @@ dependencies = [
     "scipy>=1.10",
     "matplotlib>=3.7",
     "pandas>=2.0",
+    "diff-surrogate @ git+https://github.com/telleroutlook/diff-surrogate.git",
+    "torch>=2.0",
 ]
 
 [project.optional-dependencies]
