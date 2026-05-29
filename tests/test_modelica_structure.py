@@ -43,7 +43,7 @@ EXPECTED_VALIDATED_COMPONENTS = (
 
 
 def all_mo_files() -> list[Path]:
-    return sorted(MODELICA_ROOT.rglob("*.mo"))
+    return sorted(p for p in MODELICA_ROOT.rglob("*.mo") if not p.name.startswith("._"))
 
 
 @pytest.mark.parametrize("mo_path", all_mo_files(), ids=lambda p: p.relative_to(REPO_ROOT).as_posix())
