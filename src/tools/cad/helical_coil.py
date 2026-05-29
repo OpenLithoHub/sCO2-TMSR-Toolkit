@@ -68,15 +68,15 @@ class HelicalCoilParams:
     runs that paired the STL with a `scale 0.001` blockMeshDict).
     """
 
-    tube_od: float = 38.1          # outer tube diameter (Wright2010 Table 3.2)
-    tube_wall: float = 2.4         # tube wall thickness (Wright2010 Table 3.2)
-    coil_radius: float = 200.0     # helix radius R (centreline) — not in Table 3.2
-    coil_pitch: float = 101.6      # axial advance per turn (Wright2010 Table 3.2)
-    n_turns: float = 15.0          # turns; default chosen so arc length ≈ 19.15 m
+    tube_od: float = 38.1  # outer tube diameter (Wright2010 Table 3.2)
+    tube_wall: float = 2.4  # tube wall thickness (Wright2010 Table 3.2)
+    coil_radius: float = 200.0  # helix radius R (centreline) — not in Table 3.2
+    coil_pitch: float = 101.6  # axial advance per turn (Wright2010 Table 3.2)
+    n_turns: float = 15.0  # turns; default chosen so arc length ≈ 19.15 m
     n_segments_per_turn: int = 64  # centreline samples per turn
-    n_circumferential: int = 24    # facets around the tube cross-section
+    n_circumferential: int = 24  # facets around the tube cross-section
     shell_clearance: float = 14.4  # shell-annulus clearance (mm) — Wright2010
-                                   #   Table 3.2 liquid-side D_h = 14.4 mm
+    #   Table 3.2 liquid-side D_h = 14.4 mm
 
     @property
     def tube_id(self) -> float:
@@ -91,20 +91,22 @@ class HelicalCoilParams:
 def helix_centreline(p: HelicalCoilParams) -> list[tuple[float, float, float]]:
     """Return (x, y, z) points on the helix centreline, mm.
 
-        x(θ) = R · cos(2πθ)
-        y(θ) = R · sin(2πθ)
-        z(θ) = pitch · θ           θ ∈ [0, n_turns]
+    x(θ) = R · cos(2πθ)
+    y(θ) = R · sin(2πθ)
+    z(θ) = pitch · θ           θ ∈ [0, n_turns]
     """
     n_total = max(2, int(round(p.n_turns * p.n_segments_per_turn)))
     pts: list[tuple[float, float, float]] = []
     for i in range(n_total + 1):
         theta = p.n_turns * i / n_total
         ang = 2.0 * math.pi * theta
-        pts.append((
-            p.coil_radius * math.cos(ang),
-            p.coil_radius * math.sin(ang),
-            p.coil_pitch * theta,
-        ))
+        pts.append(
+            (
+                p.coil_radius * math.cos(ang),
+                p.coil_radius * math.sin(ang),
+                p.coil_pitch * theta,
+            )
+        )
     return pts
 
 
@@ -139,7 +141,13 @@ def _vnorm(a):
 
 def parallel_transport_frames(
     points: list[tuple[float, float, float]],
-) -> list[tuple[tuple[float, float, float], tuple[float, float, float], tuple[float, float, float]]]:
+) -> list[
+    tuple[
+        tuple[float, float, float],
+        tuple[float, float, float],
+        tuple[float, float, float],
+    ]
+]:
     """Build a rotation-minimising frame (T, N, B) along a polyline.
 
     Returns one (tangent, normal, binormal) triple per point. For a helix
@@ -169,7 +177,13 @@ def parallel_transport_frames(
     n0 = _vnorm(_vcross(_vcross(t0, ref), t0))
     b0 = _vnorm(_vcross(t0, n0))
 
-    frames: list[tuple[tuple[float, float, float], tuple[float, float, float], tuple[float, float, float]]] = [
+    frames: list[
+        tuple[
+            tuple[float, float, float],
+            tuple[float, float, float],
+            tuple[float, float, float],
+        ]
+    ] = [
         (t0, n0, b0),
     ]
 
@@ -265,10 +279,7 @@ def build_tube_stl(
     radius = p.tube_od / 2.0
     n_circ = p.n_circumferential
 
-    rings = [
-        tube_ring(c, n, b, radius, n_circ)
-        for c, (_, n, b) in zip(cl, frames)
-    ]
+    rings = [tube_ring(c, n, b, radius, n_circ) for c, (_, n, b) in zip(cl, frames)]
 
     facets: list[str] = []
     for r0, r1 in zip(rings, rings[1:]):
@@ -338,9 +349,7 @@ def build_shell_stl(p: HelicalCoilParams, name: str = "chiller_shell") -> str:
 
 def implied_arc_length_mm(p: HelicalCoilParams) -> float:
     """Closed-form helix arc length: N · sqrt((2πR)² + pitch²) (mm)."""
-    return p.n_turns * math.sqrt(
-        (2.0 * math.pi * p.coil_radius) ** 2 + p.coil_pitch ** 2
-    )
+    return p.n_turns * math.sqrt((2.0 * math.pi * p.coil_radius) ** 2 + p.coil_pitch**2)
 
 
 # --------------------------------------------------------------------------
@@ -386,23 +395,40 @@ def main(argv: list[str] | None = None) -> int:
         default=Path("cases/case04_chiller/constant/triSurface"),
         help="Directory to write the two STL files into.",
     )
-    p.add_argument("--tube-od", type=float, default=38.1, help="Tube outer diameter (mm)")
-    p.add_argument("--tube-wall", type=float, default=2.4, help="Tube wall thickness (mm)")
-    p.add_argument("--coil-radius", type=float, default=200.0, help="Helix centreline radius (mm)")
-    p.add_argument("--coil-pitch", type=float, default=101.6, help="Axial advance per turn (mm)")
+    p.add_argument(
+        "--tube-od", type=float, default=38.1, help="Tube outer diameter (mm)"
+    )
+    p.add_argument(
+        "--tube-wall", type=float, default=2.4, help="Tube wall thickness (mm)"
+    )
+    p.add_argument(
+        "--coil-radius", type=float, default=200.0, help="Helix centreline radius (mm)"
+    )
+    p.add_argument(
+        "--coil-pitch", type=float, default=101.6, help="Axial advance per turn (mm)"
+    )
     p.add_argument("--turns", type=float, default=15.0, help="Number of helix turns")
-    p.add_argument("--seg-per-turn", type=int, default=64, help="Centreline samples per turn")
-    p.add_argument("--n-circ", type=int, default=24, help="Facets around the tube cross-section")
-    p.add_argument("--shell-clearance", type=float, default=14.4, help="Shell-annulus clearance (mm)")
+    p.add_argument(
+        "--seg-per-turn", type=int, default=64, help="Centreline samples per turn"
+    )
+    p.add_argument(
+        "--n-circ", type=int, default=24, help="Facets around the tube cross-section"
+    )
+    p.add_argument(
+        "--shell-clearance",
+        type=float,
+        default=14.4,
+        help="Shell-annulus clearance (mm)",
+    )
     p.add_argument(
         "--out-units",
         choices=("m", "mm"),
         default="m",
         help="On-disk STL units. Default 'm' matches snappyHexMesh's "
-             "raw-unit consumption of STL (and the in-tree blockMeshDict, "
-             "which also resolves to metres via scale 0.001). Use 'mm' "
-             "only for legacy single-region runs that scaled the STL "
-             "alongside blockMesh.",
+        "raw-unit consumption of STL (and the in-tree blockMeshDict, "
+        "which also resolves to metres via scale 0.001). Use 'mm' "
+        "only for legacy single-region runs that scaled the STL "
+        "alongside blockMesh.",
     )
     args = p.parse_args(argv)
 

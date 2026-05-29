@@ -33,8 +33,7 @@ def _csv_with(tmp_path: Path, rows: list[str], header_extra: str = "") -> Path:
     header = (
         "T_inlet_K,P_inlet_Pa,T_outlet_K,P_outlet_Pa,"
         "rho_inlet_measured,h_inlet_measured_J_kg,"
-        "efficiency_measured,source_ref"
-        + header_extra
+        "efficiency_measured,source_ref" + header_extra
     )
     csv = tmp_path / "bench.csv"
     csv.write_text("\n".join([header, *rows]) + "\n")
@@ -43,6 +42,7 @@ def _csv_with(tmp_path: Path, rows: list[str], header_extra: str = "") -> Path:
 
 def _coolprop_ref(key: str) -> float:
     import CoolProp.CoolProp as CP
+
     return float(CP.PropsSI(key, "T", _REF_T, "P", _REF_P, "CO2"))
 
 
@@ -114,9 +114,7 @@ def test_validate_skips_csv_without_column(tmp_path):
     )
     rho = _coolprop_ref("D")
     csv = tmp_path / "legacy.csv"
-    csv.write_text(
-        f"{header}\n{_REF_T},{_REF_P},,,{rho},,row_a\n"
-    )
+    csv.write_text(f"{header}\n{_REF_T},{_REF_P},,,{rho},,row_a\n")
     assert validate(csv, tolerance_pct=1.0, check="h") == 0
 
 

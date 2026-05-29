@@ -32,7 +32,7 @@ SANDIA_BENCHMARK_POINTS: list[tuple[float, float, float, float]] = [
     # ±5% measurement uncertainty, which the tolerance reflects.
     # See validation/experimental_data/SNL_compressor_data.csv row tagged
     # `Wright2010_SAND_S2.3_pseudocrit` and docs/data_extracts/wright2010_sand2010-0171.md.
-    (305.3, 7.69e6, 608.0, 5.0),    # design-point compressor inlet
+    (305.3, 7.69e6, 608.0, 5.0),  # design-point compressor inlet
     (324.659, 13.984e6, 670.0, 5.0),  # design-point compressor outlet
 ]
 
@@ -47,7 +47,9 @@ STEP_PHASE1_POINTS: list[tuple[float, float, float, float]] = [
     not SANDIA_BENCHMARK_POINTS, reason="SNL benchmark points not yet populated"
 )
 @pytest.mark.parametrize("T,P,rho_expected,tol_pct", SANDIA_BENCHMARK_POINTS)
-def test_density_against_sandia(T: float, P: float, rho_expected: float, tol_pct: float):
+def test_density_against_sandia(
+    T: float, P: float, rho_expected: float, tol_pct: float
+):
     rho_calc = CP.PropsSI("D", "T", T, "P", P, "CO2")
     rel_err = abs(rho_calc - rho_expected) / rho_expected * 100
     assert rel_err < tol_pct, (

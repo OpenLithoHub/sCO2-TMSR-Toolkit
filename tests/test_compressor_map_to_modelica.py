@@ -26,8 +26,12 @@ from tools.compressor_map_to_modelica import (  # noqa: E402
 )
 
 
-SHIPPING_CSV = REPO_ROOT / "validation" / "compressor_maps" / "sandia_main_compressor.csv"
-SHIPPING_TURBINE_CSV = REPO_ROOT / "validation" / "turbine_maps" / "sandia_main_turbine.csv"
+SHIPPING_CSV = (
+    REPO_ROOT / "validation" / "compressor_maps" / "sandia_main_compressor.csv"
+)
+SHIPPING_TURBINE_CSV = (
+    REPO_ROOT / "validation" / "turbine_maps" / "sandia_main_turbine.csv"
+)
 
 
 def test_shipping_csv_parses_to_nine_rows():
@@ -50,9 +54,7 @@ def test_shipping_csv_emits_modelica_txt_header():
 def test_phi_must_be_strictly_increasing(tmp_path):
     bad = tmp_path / "bad.csv"
     bad.write_text(
-        "phi,psi,eta\n"
-        "0.020,0.78,0.84\n"
-        "0.020,0.78,0.85\n"   # duplicate phi
+        "phi,psi,eta\n0.020,0.78,0.84\n0.020,0.78,0.85\n"  # duplicate phi
     )
     with pytest.raises(ValueError, match="strictly increasing"):
         parse_csv(bad)
@@ -93,8 +95,9 @@ def test_shipping_csv_round_trips_through_main(tmp_path):
     out = tmp_path / "regen.txt"
     rc = main([str(SHIPPING_CSV), "-o", str(out)])
     assert rc == 0
-    expected = (REPO_ROOT / "validation" / "compressor_maps"
-                / "sandia_main_compressor.txt").read_text()
+    expected = (
+        REPO_ROOT / "validation" / "compressor_maps" / "sandia_main_compressor.txt"
+    ).read_text()
     assert out.read_text() == expected
 
 
@@ -109,8 +112,11 @@ def test_turbine_csv_parses_to_nine_rows():
 def test_turbine_csv_round_trips_with_table_name(tmp_path):
     """Turbine CSV round-trips byte-for-byte with --table-name turbine_map."""
     out = tmp_path / "regen.txt"
-    rc = main([str(SHIPPING_TURBINE_CSV), "-o", str(out), "--table-name", "turbine_map"])
+    rc = main(
+        [str(SHIPPING_TURBINE_CSV), "-o", str(out), "--table-name", "turbine_map"]
+    )
     assert rc == 0
-    expected = (REPO_ROOT / "validation" / "turbine_maps"
-                / "sandia_main_turbine.txt").read_text()
+    expected = (
+        REPO_ROOT / "validation" / "turbine_maps" / "sandia_main_turbine.txt"
+    ).read_text()
     assert out.read_text() == expected

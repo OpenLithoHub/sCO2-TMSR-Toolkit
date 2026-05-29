@@ -43,11 +43,11 @@ from pathlib import Path
 class ZigzagParams:
     """All units mm; matches blockMeshDict scale=0.001 convention."""
 
-    length: float = 14.0          # one full wavelength (set blockMesh accordingly)
-    period: float = 7.0           # one zigzag tooth = one half-wavelength
-    amplitude: float = 1.0        # peak-to-mean offset of centreline (mm)
-    channel_width: float = 1.5    # spanwise (z) extent
-    channel_height: float = 1.5   # wall-normal (y) extent
+    length: float = 14.0  # one full wavelength (set blockMesh accordingly)
+    period: float = 7.0  # one zigzag tooth = one half-wavelength
+    amplitude: float = 1.0  # peak-to-mean offset of centreline (mm)
+    channel_width: float = 1.5  # spanwise (z) extent
+    channel_height: float = 1.5  # wall-normal (y) extent
     n_segments_per_period: int = 24  # discretisation of the triangular wave
 
 
@@ -64,7 +64,7 @@ def centreline(params: ZigzagParams) -> list[tuple[float, float]]:
     n_periods = max(1, int(round(params.length / params.period)))
     n_total = n_periods * params.n_segments_per_period
     for i in range(n_total + 1):
-        t = i / n_total                              # 0..1 along channel
+        t = i / n_total  # 0..1 along channel
         x = t * params.length
         # triangular wave on [0, period]
         phase = (x / params.period) % 1.0
@@ -111,23 +111,27 @@ def build_stl(params: ZigzagParams, name: str = "zigzag_wall") -> str:
         # 8 vertices of the segment slab
         # bottom face (y = yc - h), top face (y = yc + h); span ±w in z
         v = {
-            "BL0": (x0, yc0 - h, -w), "BR0": (x0, yc0 - h,  w),
-            "TL0": (x0, yc0 + h, -w), "TR0": (x0, yc0 + h,  w),
-            "BL1": (x1, yc1 - h, -w), "BR1": (x1, yc1 - h,  w),
-            "TL1": (x1, yc1 + h, -w), "TR1": (x1, yc1 + h,  w),
+            "BL0": (x0, yc0 - h, -w),
+            "BR0": (x0, yc0 - h, w),
+            "TL0": (x0, yc0 + h, -w),
+            "TR0": (x0, yc0 + h, w),
+            "BL1": (x1, yc1 - h, -w),
+            "BR1": (x1, yc1 - h, w),
+            "TL1": (x1, yc1 + h, -w),
+            "TR1": (x1, yc1 + h, w),
         }
 
         # bottom wall (y = yc - h)
-        for a, b, c in [("BL0","BR0","BR1"), ("BL0","BR1","BL1")]:
+        for a, b, c in [("BL0", "BR0", "BR1"), ("BL0", "BR1", "BL1")]:
             facets.append(_tri(v[a], v[b], v[c], _norm3(v[a], v[b], v[c])))
         # top wall
-        for a, b, c in [("TL0","TR1","TR0"), ("TL0","TL1","TR1")]:
+        for a, b, c in [("TL0", "TR1", "TR0"), ("TL0", "TL1", "TR1")]:
             facets.append(_tri(v[a], v[b], v[c], _norm3(v[a], v[b], v[c])))
         # -z side (left)
-        for a, b, c in [("BL0","TL1","TL0"), ("BL0","BL1","TL1")]:
+        for a, b, c in [("BL0", "TL1", "TL0"), ("BL0", "BL1", "TL1")]:
             facets.append(_tri(v[a], v[b], v[c], _norm3(v[a], v[b], v[c])))
         # +z side (right)
-        for a, b, c in [("BR0","TR0","TR1"), ("BR0","TR1","BR1")]:
+        for a, b, c in [("BR0", "TR0", "TR1"), ("BR0", "TR1", "BR1")]:
             facets.append(_tri(v[a], v[b], v[c], _norm3(v[a], v[b], v[c])))
 
     body = "".join(facets)
@@ -139,14 +143,20 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument(
         "--out",
         type=Path,
-        default=Path("cases/case02_zigzag_channel/constant/triSurface/zigzag_channel.stl"),
+        default=Path(
+            "cases/case02_zigzag_channel/constant/triSurface/zigzag_channel.stl"
+        ),
         help="Output STL path (relative paths resolve against CWD).",
     )
     p.add_argument("--length", type=float, default=14.0, help="Channel length (mm)")
     p.add_argument("--period", type=float, default=7.0, help="Zigzag period (mm)")
     p.add_argument("--amplitude", type=float, default=1.0, help="Zigzag amplitude (mm)")
-    p.add_argument("--width", type=float, default=1.5, help="Channel width / spanwise (mm)")
-    p.add_argument("--height", type=float, default=1.5, help="Channel height / wall-normal (mm)")
+    p.add_argument(
+        "--width", type=float, default=1.5, help="Channel width / spanwise (mm)"
+    )
+    p.add_argument(
+        "--height", type=float, default=1.5, help="Channel height / wall-normal (mm)"
+    )
     p.add_argument("--segments", type=int, default=24, help="Segments per period")
     args = p.parse_args(argv)
 

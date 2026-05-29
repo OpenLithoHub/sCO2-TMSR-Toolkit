@@ -35,7 +35,7 @@ References
 from __future__ import annotations
 
 import math
-from dataclasses import dataclass, asdict, field
+from dataclasses import dataclass, asdict
 from typing import Literal
 
 import torch
@@ -45,6 +45,7 @@ import torch
 # Dataclasses
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class PCHEChannelParams:
     """Geometric parameters for a PCHE semi-circular / rectangular micro-channel.
@@ -53,11 +54,11 @@ class PCHEChannelParams:
     and converted to metres inside the physics functions.
     """
 
-    channel_width_mm: float = 1.0       # w  — spanwise extent of channel
-    channel_height_mm: float = 0.5      # h  — wall-normal extent
-    pitch_mm: float = 2.0               # p  — centre-to-centre channel spacing
-    fin_thickness_mm: float = 0.1       # t_fin — solid fin between channels
-    num_channels: int = 10              # N  — number of parallel channels
+    channel_width_mm: float = 1.0  # w  — spanwise extent of channel
+    channel_height_mm: float = 0.5  # h  — wall-normal extent
+    pitch_mm: float = 2.0  # p  — centre-to-centre channel spacing
+    fin_thickness_mm: float = 0.1  # t_fin — solid fin between channels
+    num_channels: int = 10  # N  — number of parallel channels
 
     def hydraulic_diameter_m(self) -> float:
         """Dh = 4*A / P for a rectangular duct."""
@@ -87,18 +88,15 @@ class PCHEChannelParams:
 # over the design envelope.  The fits are deliberately simple (low-order
 # polynomials in T and P) so they remain smooth and differentiable.
 
+
 def _sco2_density_kg_m3(T: torch.Tensor, P: torch.Tensor) -> torch.Tensor:
     """Approximate sCO2 density (kg/m^3).
 
     Derived from a bilinear + quadratic-in-T fit to CoolProp PropsSI('D',...).
     """
-    Tn = T / 600.0          # normalise T
-    Pn = P / 20.0e6         # normalise P to ~1 around 20 MPa
-    rho = (130.0
-           + 350.0 * Pn
-           - 80.0 * Tn
-           - 15.0 * Tn * Pn
-           + 5.0 * Tn * Tn)
+    Tn = T / 600.0  # normalise T
+    Pn = P / 20.0e6  # normalise P to ~1 around 20 MPa
+    rho = 130.0 + 350.0 * Pn - 80.0 * Tn - 15.0 * Tn * Pn + 5.0 * Tn * Tn
     return torch.clamp(rho, min=50.0, max=1200.0)
 
 
@@ -110,10 +108,7 @@ def _sco2_viscosity_Pa_s(T: torch.Tensor, P: torch.Tensor) -> torch.Tensor:
     """
     Tn = T / 600.0
     Pn = P / 20.0e6
-    mu = (3.5e-5
-          - 1.0e-5 * Tn
-          + 0.5e-5 * Pn
-          + 0.3e-5 * Tn * Pn)
+    mu = 3.5e-5 - 1.0e-5 * Tn + 0.5e-5 * Pn + 0.3e-5 * Tn * Pn
     return torch.clamp(mu, min=1.5e-5, max=1.0e-4)
 
 
@@ -125,11 +120,7 @@ def _sco2_thermal_conductivity_W_mK(T: torch.Tensor, P: torch.Tensor) -> torch.T
     """
     Tn = T / 600.0
     Pn = P / 20.0e6
-    k = (0.045
-         + 0.015 * Pn
-         + 0.010 * Tn
-         + 0.020 * Pn * Tn
-         - 0.005 * Tn * Tn)
+    k = 0.045 + 0.015 * Pn + 0.010 * Tn + 0.020 * Pn * Tn - 0.005 * Tn * Tn
     return torch.clamp(k, min=0.02, max=0.15)
 
 
@@ -142,8 +133,8 @@ def _sco2_cp_J_kgK(T: torch.Tensor, P: torch.Tensor) -> torch.Tensor:
     Tn = T / 600.0
     Pn = P / 20.0e6
     # pseudo-critical temperature shifts up with pressure (roughly)
-    T_pc = 310.0 + 25.0 * Pn          # K (approximate)
-    sigma = 15.0 + 5.0 * Pn           # width of peak, K
+    T_pc = 310.0 + 25.0 * Pn  # K (approximate)
+    sigma = 15.0 + 5.0 * Pn  # width of peak, K
     peak = 5000.0 * torch.exp(-0.5 * ((T - T_pc) / sigma) ** 2)
     cp_base = 1000.0 + 100.0 * Tn + 50.0 * Pn
     return torch.clamp(cp_base + peak, min=800.0, max=15000.0)
@@ -160,6 +151,7 @@ def _sco2_prandtl(T: torch.Tensor, P: torch.Tensor) -> torch.Tensor:
 # ---------------------------------------------------------------------------
 # Differentiable heat-transfer and pressure-drop model
 # ---------------------------------------------------------------------------
+
 
 def _heat_transfer_core(
     w: torch.Tensor,
@@ -190,9 +182,9 @@ def _heat_transfer_core(
     """
     L = channel_length_m
 
-    Dh = 2.0 * w * h / (w + h)                    # hydraulic diameter
-    A_ch = w * h                                    # single-channel area
-    A_total = A_ch * N                              # total flow area
+    Dh = 2.0 * w * h / (w + h)  # hydraulic diameter
+    A_ch = w * h  # single-channel area
+    A_total = A_ch * N  # total flow area
 
     # Temperatures and pressures as tensors (no grad needed — fixed conditions)
     T_h = torch.tensor(T_hot_K, dtype=torch.float64)
@@ -232,8 +224,12 @@ def _heat_transfer_core(
         f_pet = (0.790 * log_Re - 1.64) ** (-2)
 
         f_over_8 = f_pet / 8.0
-        Nu_turb = (f_over_8 * (Re - 1000.0) * Pr /
-                   (1.0 + 12.7 * torch.sqrt(f_over_8) * (Pr ** 0.667 - 1.0)))
+        Nu_turb = (
+            f_over_8
+            * (Re - 1000.0)
+            * Pr
+            / (1.0 + 12.7 * torch.sqrt(f_over_8) * (Pr**0.667 - 1.0))
+        )
         Nu_turb = torch.clamp(Nu_turb, min=Nu_lam)
 
         # Smooth blend: sigma( (Re - 2300) / width )
@@ -244,20 +240,20 @@ def _heat_transfer_core(
     Nu_c = _nusselt(Re_c, Pr_c)
 
     # --- Heat transfer coefficient ---
-    htc_h = Nu_h * k_h / Dh          # W/m^2 K
+    htc_h = Nu_h * k_h / Dh  # W/m^2 K
     htc_c = Nu_c * k_c / Dh
 
     # --- Overall heat transfer coefficient (UA) ---
     # Neglect wall conduction resistance for thin-wall Inconel at these scales.
     # Area-weighted: 1/UA = 1/(h_h * A_h) + 1/(h_c * A_c), A_h = A_c = A_wet
-    A_wet = (2.0 * (w + h)) * L * N   # total wetted area
+    A_wet = (2.0 * (w + h)) * L * N  # total wetted area
     R_conv = 1.0 / (htc_h * A_wet) + 1.0 / (htc_c * A_wet)
     UA = 1.0 / R_conv
 
     # --- Heat transfer rate (epsilon-NTU method, balanced counter-flow) ---
     Cp_h = _sco2_cp_J_kgK(T_h, P_h)
     Cp_c = _sco2_cp_J_kgK(T_c, P_c)
-    C_h = m_dot_kg_s * Cp_h           # W/K
+    C_h = m_dot_kg_s * Cp_h  # W/K
     C_c = m_dot_kg_s * Cp_c
     C_min = torch.minimum(C_h, C_c)
     C_max = torch.maximum(C_h, C_c)
@@ -269,22 +265,21 @@ def _heat_transfer_core(
     # For Cr ~ 1 use the limiting form eps = NTU/(1+NTU).
     exp_term = torch.exp(-NTU * (1.0 - C_r))
     eps_numerator = 1.0 - exp_term
-    eps_denominator = 1.0 - C_r * exp_term + 1e-12   # avoid /0 when Cr=1
+    eps_denominator = 1.0 - C_r * exp_term + 1e-12  # avoid /0 when Cr=1
     effectiveness = eps_numerator / eps_denominator
     # Also compute the Cr=1 limiting form and blend for numerical safety
     eps_balanced = NTU / (1.0 + NTU)
-    cr_close = torch.sigmoid((C_r - 0.99) / 0.005)   # ~1 when Cr > 0.99
+    cr_close = torch.sigmoid((C_r - 0.99) / 0.005)  # ~1 when Cr > 0.99
     effectiveness = (1.0 - cr_close) * effectiveness + cr_close * eps_balanced
     effectiveness = torch.clamp(effectiveness, min=0.0, max=1.0)
 
-    q_max = C_min * (T_h - T_c)        # W
-    q_total = effectiveness * q_max     # W
+    q_max = C_min * (T_h - T_c)  # W
+    q_total = effectiveness * q_max  # W
 
     # --- Pressure drop (Darcy-Weisbach) ---
     def _darcy_friction(Re: torch.Tensor) -> torch.Tensor:
         """Differentiable Darcy friction factor with laminar/turbulent blend."""
         f_lam = 64.0 / torch.clamp(Re, min=1.0)
-        log_Re = torch.log(torch.clamp(Re, min=2300.0))
         f_turb = 0.316 * torch.clamp(Re, min=2300.0) ** (-0.25)  # Blasius
         blend = torch.sigmoid((Re - 2300.0) / 100.0)
         return (1.0 - blend) * f_lam + blend * f_turb
@@ -292,8 +287,8 @@ def _heat_transfer_core(
     f_h = _darcy_friction(Re_h)
     f_c = _darcy_friction(Re_c)
 
-    dp_hot = f_h * (L / Dh) * (rho_h * v_h ** 2 / 2.0)    # Pa
-    dp_cold = f_c * (L / Dh) * (rho_c * v_c ** 2 / 2.0)
+    dp_hot = f_h * (L / Dh) * (rho_h * v_h**2 / 2.0)  # Pa
+    dp_cold = f_c * (L / Dh) * (rho_c * v_c**2 / 2.0)
 
     return {
         "q_total": q_total,
@@ -434,8 +429,6 @@ def optimize_pche(
         # Snapshot geometry for history (detached)
         w_mm = w_tensor.detach().item() * 1e3
         h_mm = h_tensor.detach().item() * 1e3
-        pitch_mm = torch.exp(log_pitch).detach().item() * 1e3
-        fin_mm = torch.exp(log_fin).detach().item() * 1e3
 
         eff = metrics["effectiveness"]
         dp_total = metrics["dp_hot"] + metrics["dp_cold"]
@@ -443,13 +436,13 @@ def optimize_pche(
 
         # --- Objective ---
         if objective == "effectiveness":
-            loss = -eff   # minimise negative effectiveness
+            loss = -eff  # minimise negative effectiveness
         elif objective == "min_pressure_drop":
             # Minimise dp with a soft penalty if q < q_min
             penalty = torch.relu(q_min_W - q) / q_min_W * 10.0
-            loss = dp_total / 1e5 + penalty   # normalise to ~bar scale
+            loss = dp_total / 1e5 + penalty  # normalise to ~bar scale
         elif objective == "combined":
-            dp_norm = dp_total / 1e5           # normalise to ~bar
+            dp_norm = dp_total / 1e5  # normalise to ~bar
             loss = -(combined_alpha * eff - (1.0 - combined_alpha) * dp_norm)
         else:
             raise ValueError(f"Unknown objective: {objective!r}")
@@ -458,17 +451,19 @@ def optimize_pche(
         optimizer.step()
 
         # Record history
-        history.append({
-            "step": step,
-            "loss": loss.item(),
-            "effectiveness": eff.item(),
-            "q_total_W": q.item(),
-            "dp_hot_Pa": metrics["dp_hot"].item(),
-            "dp_cold_Pa": metrics["dp_cold"].item(),
-            "channel_width_mm": w_mm,
-            "channel_height_mm": h_mm,
-            "num_channels": N_int,
-        })
+        history.append(
+            {
+                "step": step,
+                "loss": loss.item(),
+                "effectiveness": eff.item(),
+                "q_total_W": q.item(),
+                "dp_hot_Pa": metrics["dp_hot"].item(),
+                "dp_cold_Pa": metrics["dp_cold"].item(),
+                "channel_width_mm": w_mm,
+                "channel_height_mm": h_mm,
+                "num_channels": N_int,
+            }
+        )
 
         if verbose and (step % 50 == 0 or step == n_steps - 1):
             print(
@@ -537,6 +532,7 @@ def optimize_pche(
 # Robust optimisation with antithetic variance reduction
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class RobustConfig:
     """Configuration for antithetic robust PCHE optimisation.
@@ -565,8 +561,8 @@ class RobustConfig:
     """
 
     n_perturbation_pairs: int = 4
-    wall_thickness_delta_mm: float = 0.01   # 10 µm tolerance
-    channel_width_delta_mm: float = 0.02    # 20 µm tolerance
+    wall_thickness_delta_mm: float = 0.01  # 10 µm tolerance
+    channel_width_delta_mm: float = 0.02  # 20 µm tolerance
     seed: int | None = None
 
 
@@ -632,7 +628,7 @@ def robust_optimize_pche(
         rng.manual_seed(robust_config.seed)
 
     K = robust_config.n_perturbation_pairs
-    dw_max = robust_config.channel_width_delta_mm * 1e-3   # to metres
+    dw_max = robust_config.channel_width_delta_mm * 1e-3  # to metres
     dh_max = robust_config.wall_thickness_delta_mm * 1e-3
 
     # --- Learnable parameters (log-space, same as deterministic path) ---
@@ -650,10 +646,15 @@ def robust_optimize_pche(
         N_int: int,
     ) -> dict[str, torch.Tensor]:
         return _heat_transfer_core(
-            w=w_tensor, h=h_tensor, N=N_int,
-            T_hot_K=T_hot_K, T_cold_K=T_cold_K,
-            P_hot_Pa=P_hot_Pa, P_cold_Pa=P_cold_Pa,
-            m_dot_kg_s=m_dot_kg_s, channel_length_m=channel_length_m,
+            w=w_tensor,
+            h=h_tensor,
+            N=N_int,
+            T_hot_K=T_hot_K,
+            T_cold_K=T_cold_K,
+            P_hot_Pa=P_hot_Pa,
+            P_cold_Pa=P_cold_Pa,
+            m_dot_kg_s=m_dot_kg_s,
+            channel_length_m=channel_length_m,
         )
 
     def _compute_loss(metrics: dict[str, torch.Tensor]) -> torch.Tensor:
@@ -691,8 +692,12 @@ def robust_optimize_pche(
         # Using uniform distribution scaled by max tolerance
         perturbed_losses = []
         for _ in range(K):
-            dw = (2.0 * torch.rand(1, generator=rng, dtype=torch.float64).squeeze() - 1.0) * dw_max
-            dh = (2.0 * torch.rand(1, generator=rng, dtype=torch.float64).squeeze() - 1.0) * dh_max
+            dw = (
+                2.0 * torch.rand(1, generator=rng, dtype=torch.float64).squeeze() - 1.0
+            ) * dw_max
+            dh = (
+                2.0 * torch.rand(1, generator=rng, dtype=torch.float64).squeeze() - 1.0
+            ) * dh_max
 
             # +δ perturbation
             m_plus = _build_metrics(
@@ -726,18 +731,20 @@ def robust_optimize_pche(
         dp_total = nominal_metrics["dp_hot"] + nominal_metrics["dp_cold"]
         q = nominal_metrics["q_total"]
 
-        history.append({
-            "step": step,
-            "loss": robust_loss.item(),
-            "nominal_loss": nominal_loss.item(),
-            "effectiveness": eff.item(),
-            "q_total_W": q.item(),
-            "dp_hot_Pa": nominal_metrics["dp_hot"].item(),
-            "dp_cold_Pa": nominal_metrics["dp_cold"].item(),
-            "channel_width_mm": w_mm,
-            "channel_height_mm": h_mm,
-            "num_channels": N_int,
-        })
+        history.append(
+            {
+                "step": step,
+                "loss": robust_loss.item(),
+                "nominal_loss": nominal_loss.item(),
+                "effectiveness": eff.item(),
+                "q_total_W": q.item(),
+                "dp_hot_Pa": nominal_metrics["dp_hot"].item(),
+                "dp_cold_Pa": nominal_metrics["dp_cold"].item(),
+                "channel_width_mm": w_mm,
+                "channel_height_mm": h_mm,
+                "num_channels": N_int,
+            }
+        )
 
         if verbose and (step % 50 == 0 or step == n_steps - 1):
             print(
@@ -781,8 +788,10 @@ def robust_optimize_pche(
 
     if verbose:
         print("\n=== Robust optimisation complete ===")
-        print(f"  Robust config: K={K} pairs, dw=±{robust_config.channel_width_delta_mm:.3f} mm, "
-              f"dh=±{robust_config.wall_thickness_delta_mm:.3f} mm")
+        print(
+            f"  Robust config: K={K} pairs, dw=±{robust_config.channel_width_delta_mm:.3f} mm, "
+            f"dh=±{robust_config.wall_thickness_delta_mm:.3f} mm"
+        )
         print(f"  Optimized params: {asdict(optimized)}")
         print(f"  Effectiveness : {final_metrics_clean['effectiveness']:.4f}")
         print(f"  q_total       : {final_metrics_clean['q_total']:.1f} W")
@@ -801,6 +810,7 @@ def robust_optimize_pche(
 # CLI entry point
 # ---------------------------------------------------------------------------
 
+
 def main() -> int:
     """Run a demo optimisation from the command line."""
     import argparse
@@ -815,10 +825,16 @@ def main() -> int:
         default="effectiveness",
         help="Optimisation objective (default: effectiveness)",
     )
-    p.add_argument("--T-hot", type=float, default=823.15, help="Hot-side temperature (K)")
-    p.add_argument("--T-cold", type=float, default=343.15, help="Cold-side temperature (K)")
+    p.add_argument(
+        "--T-hot", type=float, default=823.15, help="Hot-side temperature (K)"
+    )
+    p.add_argument(
+        "--T-cold", type=float, default=343.15, help="Cold-side temperature (K)"
+    )
     p.add_argument("--P-hot", type=float, default=20.0e6, help="Hot-side pressure (Pa)")
-    p.add_argument("--P-cold", type=float, default=8.0e6, help="Cold-side pressure (Pa)")
+    p.add_argument(
+        "--P-cold", type=float, default=8.0e6, help="Cold-side pressure (Pa)"
+    )
     p.add_argument("--mdot", type=float, default=0.01, help="Mass flow rate (kg/s)")
     p.add_argument("--length", type=float, default=1.0, help="Channel length (m)")
     p.add_argument("--steps", type=int, default=300, help="Optimisation steps")
@@ -843,10 +859,12 @@ def main() -> int:
     )
     args = p.parse_args()
 
-    print(f"PCHE optimisation — objective: {args.objective}"
-          + (" [ROBUST]" if args.robust else ""))
+    print(
+        f"PCHE optimisation — objective: {args.objective}"
+        + (" [ROBUST]" if args.robust else "")
+    )
     print(f"  T_hot={args.T_hot:.1f} K  T_cold={args.T_cold:.1f} K")
-    print(f"  P_hot={args.P_hot/1e6:.1f} MPa  P_cold={args.P_cold/1e6:.1f} MPa")
+    print(f"  P_hot={args.P_hot / 1e6:.1f} MPa  P_cold={args.P_cold / 1e6:.1f} MPa")
     print(f"  mdot={args.mdot} kg/s  L={args.length} m")
     print()
 

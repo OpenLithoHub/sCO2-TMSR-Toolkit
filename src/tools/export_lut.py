@@ -66,8 +66,7 @@ def export_sco2_lut(
         f.write("// Columns: T[K] p[Pa] rho[kg/m3] Cp[J/kgK] mu[Pa.s] k[W/mK]\n")
         for r in df.itertuples(index=False):
             f.write(
-                f"{r.T:.2f} {r.P:.0f} {r.rho:.4f} {r.Cp:.2f} "
-                f"{r.mu:.6e} {r.k:.6f}\n"
+                f"{r.T:.2f} {r.P:.0f} {r.rho:.4f} {r.Cp:.2f} {r.mu:.6e} {r.k:.6f}\n"
             )
 
     print(f"LUT complete: {len(rows)} valid points, {skipped} skipped")

@@ -42,8 +42,12 @@ def test_near_critical_classification():
 def test_sweep_returns_expected_shape():
     """Sweep grid must match requested resolution and contain only valid codes."""
     T_axis, P_axis, grid = sweep(
-        impurity="Helium", x_imp=0.0, n_T=8, n_P=6,
-        T_range=(290.0, 700.0), P_range=(8e6, 25e6),
+        impurity="Helium",
+        x_imp=0.0,
+        n_T=8,
+        n_P=6,
+        T_range=(290.0, 700.0),
+        P_range=(8e6, 25e6),
     )
     assert T_axis.shape == (8,)
     assert P_axis.shape == (6,)
@@ -60,8 +64,12 @@ def test_helium_mixture_has_failures():
     test (and this docstring) instead of suppressing it.
     """
     _, _, grid = sweep(
-        impurity="Helium", x_imp=0.03, n_T=10, n_P=10,
-        T_range=(290.0, 700.0), P_range=(8e6, 25e6),
+        impurity="Helium",
+        x_imp=0.03,
+        n_T=10,
+        n_P=10,
+        T_range=(290.0, 700.0),
+        P_range=(8e6, 25e6),
     )
     failures = (grid == SOLVER_FAILED).sum()
     assert failures > 0, (
@@ -74,8 +82,12 @@ def test_helium_mixture_has_failures():
 def test_water_mixture_mostly_ok():
     """CO₂+H₂O HEOS is documented as much more robust than CO₂+He."""
     _, _, grid = sweep(
-        impurity="Water", x_imp=0.01, n_T=10, n_P=10,
-        T_range=(310.0, 600.0), P_range=(8e6, 20e6),
+        impurity="Water",
+        x_imp=0.01,
+        n_T=10,
+        n_P=10,
+        T_range=(310.0, 600.0),
+        P_range=(8e6, 20e6),
     )
     n = grid.size
     ok_frac = (grid == OK).sum() / n

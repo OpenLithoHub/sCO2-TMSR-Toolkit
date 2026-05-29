@@ -164,8 +164,7 @@ def _parse_checks(spec: str) -> list[str]:
     unknown = [c for c in checks if c not in _CHECK_SPECS]
     if unknown:
         raise SystemExit(
-            f"--check: unknown quantity {unknown!r}. "
-            f"Valid: {sorted(_CHECK_SPECS)}"
+            f"--check: unknown quantity {unknown!r}. Valid: {sorted(_CHECK_SPECS)}"
         )
     return checks
 

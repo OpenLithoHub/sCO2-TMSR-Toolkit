@@ -117,7 +117,12 @@ def test_shipping_coefficients_meet_quality_bounds():
     against the prior commit and document the change.
     """
     coeffs_path = (
-        REPO_ROOT / "cases" / "case04_chiller" / "constant" / "gas" / "sco2_thermo_coeffs.json"
+        REPO_ROOT
+        / "cases"
+        / "case04_chiller"
+        / "constant"
+        / "gas"
+        / "sco2_thermo_coeffs.json"
     )
     if not coeffs_path.exists():
         pytest.skip("sco2_thermo_coeffs.json not committed yet")

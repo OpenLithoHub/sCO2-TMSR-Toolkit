@@ -17,9 +17,7 @@ Requires: DiffCFD and sCO2-TMSR-Toolkit on the Python path.
 
 from __future__ import annotations
 
-import sys
 from dataclasses import dataclass, field
-from pathlib import Path
 from typing import Literal
 
 import torch
@@ -31,7 +29,9 @@ class MultiFidelityConfig:
     calibration_weight: float = 0.1
     n_steps: int = 300
     lr: float = 1e-3
-    objective: Literal["effectiveness", "min_pressure_drop", "combined"] = "effectiveness"
+    objective: Literal["effectiveness", "min_pressure_drop", "combined"] = (
+        "effectiveness"
+    )
     initial_channels: int = 40
     initial_width_mm: float = 1.2
     initial_height_mm: float = 0.8
@@ -57,15 +57,22 @@ def _run_low_fidelity(
     from optimize_pche import _heat_transfer_core
 
     return _heat_transfer_core(
-        w=w, h=h, N=N,
-        T_hot_K=823.15, T_cold_K=343.15,
-        P_hot_Pa=20.0e6, P_cold_Pa=8.0e6,
-        m_dot_kg_s=0.01, channel_length_m=1.0,
+        w=w,
+        h=h,
+        N=N,
+        T_hot_K=823.15,
+        T_cold_K=343.15,
+        P_hot_Pa=20.0e6,
+        P_cold_Pa=8.0e6,
+        m_dot_kg_s=0.01,
+        channel_length_m=1.0,
     )
 
 
 def _run_high_fidelity(
-    w_m: float, h_m: float, n_channels: int,
+    w_m: float,
+    h_m: float,
+    n_channels: int,
 ) -> dict[str, float]:
     """Run DiffCFD NS solver for heat transfer (expensive, ground truth).
 
@@ -105,7 +112,9 @@ def _compute_loss(
         return -eff + 1e-7 * dp
 
 
-def optimize_multifidelity(config: MultiFidelityConfig | None = None) -> MultiFidelityResult:
+def optimize_multifidelity(
+    config: MultiFidelityConfig | None = None,
+) -> MultiFidelityResult:
     """Run multi-fidelity PCHE optimization.
 
     Cycles between fast Gnielinski surrogate and periodic DiffCFD CFD calibration.
@@ -114,10 +123,14 @@ def optimize_multifidelity(config: MultiFidelityConfig | None = None) -> MultiFi
     result = MultiFidelityResult(final_params={})
 
     log_w = torch.tensor(
-        math.log(config.initial_width_mm * 1e-3), dtype=torch.float64, requires_grad=True
+        math.log(config.initial_width_mm * 1e-3),
+        dtype=torch.float64,
+        requires_grad=True,
     )
     log_h = torch.tensor(
-        math.log(config.initial_height_mm * 1e-3), dtype=torch.float64, requires_grad=True
+        math.log(config.initial_height_mm * 1e-3),
+        dtype=torch.float64,
+        requires_grad=True,
     )
     optimizer = torch.optim.Adam([log_w, log_h], lr=config.lr)
 
@@ -129,9 +142,7 @@ def optimize_multifidelity(config: MultiFidelityConfig | None = None) -> MultiFi
             cfd_result = _run_high_fidelity(w.item(), h.item(), config.initial_channels)
             result.correction_count += 1
             result.fidelity_history.append("high")
-            result.calibration_errors.append(
-                abs(cfd_result["effectiveness"] - 0.5)
-            )
+            result.calibration_errors.append(abs(cfd_result["effectiveness"] - 0.5))
 
         metrics = _run_low_fidelity(w, h, config.initial_channels, config)
         loss = _compute_loss(metrics, config.objective)
@@ -147,7 +158,7 @@ def optimize_multifidelity(config: MultiFidelityConfig | None = None) -> MultiFi
             fid = result.fidelity_history[-1]
             print(
                 f"  step {step:4d}  loss={loss.item():.6f}  "
-                f"w={w.item()*1e3:.3f}mm  h={h.item()*1e3:.3f}mm  [{fid}]"
+                f"w={w.item() * 1e3:.3f}mm  h={h.item() * 1e3:.3f}mm  [{fid}]"
             )
 
     with torch.no_grad():
@@ -161,7 +172,7 @@ def optimize_multifidelity(config: MultiFidelityConfig | None = None) -> MultiFi
     }
 
     print(f"\nOptimization complete: {result.correction_count} CFD corrections")
-    print(f"  w = {w_final*1e3:.3f} mm, h = {h_final*1e3:.3f} mm")
+    print(f"  w = {w_final * 1e3:.3f} mm, h = {h_final * 1e3:.3f} mm")
     print(f"  Final loss: {result.loss_history[-1]:.6f}")
 
     return result

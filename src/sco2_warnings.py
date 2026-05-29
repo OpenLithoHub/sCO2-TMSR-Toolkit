@@ -34,12 +34,12 @@ if not LOG.handlers:
 
 KNOWN_GAPS_ANCHORS: Final[frozenset[str]] = frozenset(
     {
-        "compressor-maps",      # Gap 1
-        "pche-geometry",        # Gap 2
-        "mixture-eos",          # Gap 3
-        "tritium-constants",    # Gap 4
-        "snl-step-rows",        # Gap 5
-        "tmsr-lf1",             # Gap 6
+        "compressor-maps",  # Gap 1
+        "pche-geometry",  # Gap 2
+        "mixture-eos",  # Gap 3
+        "tritium-constants",  # Gap 4
+        "snl-step-rows",  # Gap 5
+        "tmsr-lf1",  # Gap 6
     }
 )
 

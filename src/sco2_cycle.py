@@ -35,22 +35,22 @@ class CycleParams:
 
     P_low_Pa: float = 8.0e6
     P_high_Pa: float = 25.0e6
-    T_compressor_in_K: float = 308.15      # ~35 °C
-    T_compressor_out_K: float = 343.15     # ~70 °C
-    T_after_lowT_recup_K: float = 423.15   # ~150 °C
-    T_turbine_in_K: float = 823.15         # ~550 °C
-    T_turbine_out_K: float = 703.15        # ~430 °C
+    T_compressor_in_K: float = 308.15  # ~35 °C
+    T_compressor_out_K: float = 343.15  # ~70 °C
+    T_after_lowT_recup_K: float = 423.15  # ~150 °C
+    T_turbine_in_K: float = 823.15  # ~550 °C
+    T_turbine_out_K: float = 703.15  # ~430 °C
     T_after_highT_recup_K: float = 473.15  # ~200 °C
 
 
 def build_states(params: CycleParams = CycleParams()) -> list[CycleState]:
     """Return the six idealised state points in cycle traversal order."""
     spec = [
-        ("1", params.T_compressor_in_K,    params.P_low_Pa),
-        ("2", params.T_compressor_out_K,   params.P_high_Pa),
+        ("1", params.T_compressor_in_K, params.P_low_Pa),
+        ("2", params.T_compressor_out_K, params.P_high_Pa),
         ("3", params.T_after_lowT_recup_K, params.P_high_Pa),
-        ("4", params.T_turbine_in_K,       params.P_high_Pa),
-        ("5", params.T_turbine_out_K,      params.P_low_Pa),
+        ("4", params.T_turbine_in_K, params.P_high_Pa),
+        ("5", params.T_turbine_out_K, params.P_low_Pa),
         ("6", params.T_after_highT_recup_K, params.P_low_Pa),
     ]
     states = []
@@ -94,8 +94,15 @@ def plot_ts_diagram(
 
     s_arr = [s.s_J_kgK for s in states] + [states[0].s_J_kgK]
     T_arr = [s.T_K for s in states] + [states[0].T_K]
-    ax.plot(s_arr, T_arr, "o-", color="navy", markersize=7, lw=2,
-            label="Idealised recompression path")
+    ax.plot(
+        s_arr,
+        T_arr,
+        "o-",
+        color="navy",
+        markersize=7,
+        lw=2,
+        label="Idealised recompression path",
+    )
 
     for s in states:
         ax.annotate(

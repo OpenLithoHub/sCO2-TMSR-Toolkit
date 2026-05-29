@@ -46,12 +46,18 @@ def all_mo_files() -> list[Path]:
     return sorted(p for p in MODELICA_ROOT.rglob("*.mo") if not p.name.startswith("._"))
 
 
-@pytest.mark.parametrize("mo_path", all_mo_files(), ids=lambda p: p.relative_to(REPO_ROOT).as_posix())
+@pytest.mark.parametrize(
+    "mo_path", all_mo_files(), ids=lambda p: p.relative_to(REPO_ROOT).as_posix()
+)
 def test_within_clause_present(mo_path: Path):
     """Every Modelica file must start with a `within` clause."""
     text = mo_path.read_text()
     first_nonblank = next(
-        (line for line in text.splitlines() if line.strip() and not line.lstrip().startswith("//")),
+        (
+            line
+            for line in text.splitlines()
+            if line.strip() and not line.lstrip().startswith("//")
+        ),
         "",
     )
     assert first_nonblank.startswith("within "), (
@@ -60,7 +66,9 @@ def test_within_clause_present(mo_path: Path):
     )
 
 
-@pytest.mark.parametrize("mo_path", all_mo_files(), ids=lambda p: p.relative_to(REPO_ROOT).as_posix())
+@pytest.mark.parametrize(
+    "mo_path", all_mo_files(), ids=lambda p: p.relative_to(REPO_ROOT).as_posix()
+)
 def test_block_names_balanced(mo_path: Path):
     """The opening `model X` / `package X` must match the closing `end X;`.
 
@@ -77,7 +85,9 @@ def test_block_names_balanced(mo_path: Path):
         stripped,
         re.MULTILINE,
     )
-    assert open_match, f"{mo_path.relative_to(REPO_ROOT)}: no top-level Modelica block found"
+    assert open_match, (
+        f"{mo_path.relative_to(REPO_ROOT)}: no top-level Modelica block found"
+    )
     block_kind, block_name = open_match.group(1), open_match.group(2)
 
     end_pattern = re.compile(rf"\bend\s+{re.escape(block_name)}\s*;\s*$", re.MULTILINE)
@@ -96,6 +106,4 @@ def test_validation_tests_references_every_documented_component():
     """
     vt_text = (MODELICA_ROOT / "Tests" / "ValidationTests.mo").read_text()
     missing = [c for c in EXPECTED_VALIDATED_COMPONENTS if c not in vt_text]
-    assert not missing, (
-        "ValidationTests.mo does not reference: " + ", ".join(missing)
-    )
+    assert not missing, "ValidationTests.mo does not reference: " + ", ".join(missing)

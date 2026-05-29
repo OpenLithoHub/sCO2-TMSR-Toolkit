@@ -23,9 +23,7 @@ def _load(module_name: str, path: Path):
 
 @pytest.fixture
 def plot_module():
-    return _load(
-        "pp_plot_nu", REPO_ROOT / "postProcessing" / "plot_Nu_vs_Re.py"
-    )
+    return _load("pp_plot_nu", REPO_ROOT / "postProcessing" / "plot_Nu_vs_Re.py")
 
 
 @pytest.fixture
@@ -45,6 +43,7 @@ def test_gnielinski_classical_value(plot_module):
     Loose tolerance — keep it as a regression guard, not an accuracy claim.
     """
     import numpy as np
+
     Nu = plot_module.gnielinski(np.array([1e4]))
     assert 20.0 < float(Nu[0]) < 40.0
 
@@ -69,7 +68,9 @@ def test_collect_summaries_round_trip(plot_module, tmp_path):
     assert df.iloc[0]["Re"] == 5000.0
 
 
-def test_validate_skips_when_either_side_empty(validate_module, tmp_path, monkeypatch, capsys):
+def test_validate_skips_when_either_side_empty(
+    validate_module, tmp_path, monkeypatch, capsys
+):
     """validate_against_exp must exit-style return 0 when one side is empty."""
     fake_exp = tmp_path / "exp.csv"
     fake_exp.write_text(
@@ -80,7 +81,8 @@ def test_validate_skips_when_either_side_empty(validate_module, tmp_path, monkey
     fake_root.mkdir()
 
     monkeypatch.setattr(
-        sys, "argv",
+        sys,
+        "argv",
         ["validate_against_exp", "--cfd-root", str(fake_root), "--exp", str(fake_exp)],
     )
     rc = validate_module.main()

@@ -55,9 +55,7 @@ def fit_polynomial(
     if T.shape != y.shape:
         raise ValueError(f"T and y must share shape; got {T.shape} vs {y.shape}.")
     if T.size < order + 1:
-        raise ValueError(
-            f"Need at least order+1 = {order + 1} samples; got {T.size}."
-        )
+        raise ValueError(f"Need at least order+1 = {order + 1} samples; got {T.size}.")
     coeffs_desc = np.polyfit(T, y, deg=order)
     coeffs_asc = tuple(float(c) for c in coeffs_desc[::-1])
 
@@ -219,7 +217,9 @@ def main(argv: list[str] | None = None) -> int:
         default=7.7e6,
         help="Pressure at which the polynomial is evaluated (Pa)",
     )
-    p.add_argument("--order", type=int, default=7, help="Polynomial degree (max 7 for OpenFOAM)")
+    p.add_argument(
+        "--order", type=int, default=7, help="Polynomial degree (max 7 for OpenFOAM)"
+    )
     p.add_argument(
         "--output",
         type=Path,

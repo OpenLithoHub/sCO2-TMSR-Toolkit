@@ -26,8 +26,9 @@ from tools.cad.helical_coil import (  # noqa: E402
 
 def test_centreline_endpoints_match_helix_formula():
     """First point at θ=0 sits at (R, 0, 0); last point at θ=N has z = N·pitch."""
-    p = HelicalCoilParams(coil_radius=200.0, coil_pitch=101.6, n_turns=15.0,
-                          n_segments_per_turn=32)
+    p = HelicalCoilParams(
+        coil_radius=200.0, coil_pitch=101.6, n_turns=15.0, n_segments_per_turn=32
+    )
     pts = helix_centreline(p)
     assert pts[0] == pytest.approx((200.0, 0.0, 0.0), abs=1e-9)
     x_end, y_end, z_end = pts[-1]
@@ -41,8 +42,9 @@ def test_implied_arc_length_close_to_wright2010_table32():
     """Default knobs (R=200, pitch=101.6, N=15) should land within 5 % of 19.15 m."""
     p = HelicalCoilParams()
     arc_mm = implied_arc_length_mm(p)
-    assert arc_mm == pytest.approx(15.0 * math.sqrt((2 * math.pi * 200.0) ** 2
-                                                    + 101.6 ** 2), rel=1e-12)
+    assert arc_mm == pytest.approx(
+        15.0 * math.sqrt((2 * math.pi * 200.0) ** 2 + 101.6**2), rel=1e-12
+    )
     arc_m = arc_mm / 1000.0
     assert abs(arc_m - 19.15) / 19.15 < 0.05
 
@@ -90,12 +92,18 @@ def test_shell_stl_is_well_formed_ascii():
 
 def test_main_writes_both_stls(tmp_path):
     """CLI must emit both helical_tube.stl and chiller_shell.stl, non-empty."""
-    rc = main([
-        "--out-dir", str(tmp_path),
-        "--turns", "1",
-        "--seg-per-turn", "16",
-        "--n-circ", "12",
-    ])
+    rc = main(
+        [
+            "--out-dir",
+            str(tmp_path),
+            "--turns",
+            "1",
+            "--seg-per-turn",
+            "16",
+            "--n-circ",
+            "12",
+        ]
+    )
     assert rc == 0
     tube = tmp_path / "helical_tube.stl"
     shell = tmp_path / "chiller_shell.stl"

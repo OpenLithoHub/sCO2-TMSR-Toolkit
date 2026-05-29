@@ -42,15 +42,15 @@ import pandas as pd
 # Selected to cover compressor inlet (305 K, ~7.7 MPa near pseudo-critical),
 # heat-exchanger high-pressure side, and turbine inlet conditions.
 SELF_CONSISTENCY_POINTS: list[tuple[float, float]] = [
-    (305.4, 7.69e6),    # near pseudo-critical (Sandia compressor inlet shape)
+    (305.4, 7.69e6),  # near pseudo-critical (Sandia compressor inlet shape)
     (308.0, 8.0e6),
     (320.0, 10.0e6),
-    (351.2, 20.0e6),    # high-pressure side after compression
+    (351.2, 20.0e6),  # high-pressure side after compression
     (450.0, 20.0e6),
     (550.0, 20.0e6),
     (650.0, 20.0e6),
-    (773.15, 20.0e6),   # turbine inlet (~500 °C)
-    (823.15, 25.0e6),   # peak-cycle hot end
+    (773.15, 20.0e6),  # turbine inlet (~500 °C)
+    (823.15, 25.0e6),  # peak-cycle hot end
 ]
 
 

@@ -15,8 +15,9 @@ from tools.cad.zigzag import ZigzagParams, build_stl, centreline, main
 
 def test_centreline_apex_amplitude_matches_param():
     """At phase 0.5 the triangular wave reaches +amplitude exactly."""
-    params = ZigzagParams(length=14.0, period=7.0, amplitude=1.0,
-                          n_segments_per_period=12)
+    params = ZigzagParams(
+        length=14.0, period=7.0, amplitude=1.0, n_segments_per_period=12
+    )
     pts = centreline(params)
     ys = [y for _, y in pts]
     assert max(ys) == pytest.approx(params.amplitude, abs=1e-9)
@@ -38,13 +39,20 @@ def test_build_stl_is_well_formed_ascii():
 def test_main_writes_file_to_disk(tmp_path):
     """The CLI entrypoint must emit a non-empty STL at the requested path."""
     out = tmp_path / "zz.stl"
-    rc = main([
-        "--out", str(out),
-        "--length", "14",
-        "--period", "7",
-        "--amplitude", "1",
-        "--segments", "8",
-    ])
+    rc = main(
+        [
+            "--out",
+            str(out),
+            "--length",
+            "14",
+            "--period",
+            "7",
+            "--amplitude",
+            "1",
+            "--segments",
+            "8",
+        ]
+    )
     assert rc == 0
     assert out.exists() and out.stat().st_size > 0
     text = out.read_text()

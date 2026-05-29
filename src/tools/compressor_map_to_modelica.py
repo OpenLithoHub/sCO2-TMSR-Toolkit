@@ -49,7 +49,9 @@ def parse_csv(path: Path) -> list[MapRow]:
     """Parse a `phi, psi, eta` CSV, skipping `#` comments and blank lines."""
     rows: list[MapRow] = []
     with path.open() as fh:
-        cleaned = (line for line in fh if line.strip() and not line.lstrip().startswith("#"))
+        cleaned = (
+            line for line in fh if line.strip() and not line.lstrip().startswith("#")
+        )
         reader = csv.DictReader(cleaned)
         missing = [c for c in REQUIRED_COLUMNS if c not in (reader.fieldnames or [])]
         if missing:
@@ -58,11 +60,13 @@ def parse_csv(path: Path) -> list[MapRow]:
                 f"got {reader.fieldnames!r}. Expected {REQUIRED_COLUMNS}."
             )
         for raw in reader:
-            rows.append(MapRow(
-                phi=float(raw["phi"]),
-                psi=float(raw["psi"]),
-                eta=float(raw["eta"]),
-            ))
+            rows.append(
+                MapRow(
+                    phi=float(raw["phi"]),
+                    psi=float(raw["psi"]),
+                    eta=float(raw["eta"]),
+                )
+            )
     if not rows:
         raise ValueError(f"{path}: parsed zero data rows.")
 
@@ -99,7 +103,8 @@ def main(argv: list[str] | None = None) -> int:
     )
     p.add_argument("csv", type=Path, help="Input CSV with phi, psi, eta columns")
     p.add_argument(
-        "-o", "--output",
+        "-o",
+        "--output",
         type=Path,
         default=None,
         help="Output .txt path (defaults to <csv stem>.txt next to the CSV)",

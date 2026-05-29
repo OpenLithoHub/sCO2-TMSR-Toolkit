@@ -202,8 +202,12 @@ def write_grid_csv(
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.split("\n", maxsplit=1)[0])
     ap.add_argument("--impurity", default="Helium", choices=["Helium", "Water"])
-    ap.add_argument("--x-imp", type=float, default=0.03,
-                    help="Impurity mole fraction (0-0.1 typical)")
+    ap.add_argument(
+        "--x-imp",
+        type=float,
+        default=0.03,
+        help="Impurity mole fraction (0-0.1 typical)",
+    )
     ap.add_argument("--T-min", type=float, default=290.0)
     ap.add_argument("--T-max", type=float, default=800.0)
     ap.add_argument("--P-min", type=float, default=5e6)

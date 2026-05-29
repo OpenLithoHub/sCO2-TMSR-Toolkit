@@ -34,8 +34,14 @@ def test_synthetic_dataset_has_required_columns():
     from rom.dataset.extract_from_cfd import synthetic_dataset
 
     df = synthetic_dataset(n=50, seed=0)
-    required = {"T_in_K", "P_in_Pa", "mass_flow_kg_s", "geometry_id",
-                "Nu_avg", "dp_total_Pa"}
+    required = {
+        "T_in_K",
+        "P_in_Pa",
+        "mass_flow_kg_s",
+        "geometry_id",
+        "Nu_avg",
+        "dp_total_Pa",
+    }
     assert required.issubset(df.columns)
     assert (df["Nu_avg"] >= 1.0).all()
     assert (df["dp_total_Pa"] >= 1.0).all()
