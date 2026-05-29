@@ -49,6 +49,7 @@ PC = 7.377e6  # Pa (7.377 MPa)
 # PropertySurrogate — main class
 # ---------------------------------------------------------------------------
 
+
 class PropertySurrogate:
     """Neural surrogate for CO2 thermophysical properties from CoolProp data.
 
@@ -80,11 +81,15 @@ class PropertySurrogate:
 
         in_dim = 2  # (T_normalized, P_normalized)
 
-        # 4 independent MLPs, one per property
-        self._density_net = MonotoneMLP(in_dim, hidden_dim, 1).to(self._device)
-        self._viscosity_net = PositiveOutputMLP(in_dim, hidden_dim, 1).to(self._device)
-        self._conductivity_net = PositiveOutputMLP(in_dim, hidden_dim, 1).to(self._device)
-        self._cp_net = PositiveOutputMLP(in_dim, hidden_dim, 1).to(self._device)
+        # 4 independent MLPs, one per property (output dim is always 1)
+        self._density_net = MonotoneMLP(in_dim, hidden=hidden_dim).to(self._device)
+        self._viscosity_net = PositiveOutputMLP(in_dim, hidden=hidden_dim).to(
+            self._device
+        )
+        self._conductivity_net = PositiveOutputMLP(in_dim, hidden=hidden_dim).to(
+            self._device
+        )
+        self._cp_net = PositiveOutputMLP(in_dim, hidden=hidden_dim).to(self._device)
 
     # ------------------------------------------------------------------
     # Normalization
@@ -140,7 +145,9 @@ class PropertySurrogate:
     # Convenience: predict all properties at once
     # ------------------------------------------------------------------
 
-    def predict_all(self, T: float | np.ndarray, P: float | np.ndarray) -> dict[str, np.ndarray]:
+    def predict_all(
+        self, T: float | np.ndarray, P: float | np.ndarray
+    ) -> dict[str, np.ndarray]:
         """Predict all 4 properties at given (T, P) point(s).
 
         Parameters
@@ -247,8 +254,10 @@ class PropertySurrogate:
 
         # Filter out any NaN entries (failed CoolProp evaluations)
         valid = ~(np.isnan(rho) | np.isnan(mu) | np.isnan(k) | np.isnan(cp))
-        print(f"CoolProp data: {valid.sum()}/{N} points valid "
-              f"({(~valid).sum()} failed, likely two-phase)")
+        print(
+            f"CoolProp data: {valid.sum()}/{N} points valid "
+            f"({(~valid).sum()} failed, likely two-phase)"
+        )
 
         return {
             "T": T_flat[valid],
@@ -316,7 +325,9 @@ class PropertySurrogate:
             vals = np.asarray(raw_vals)
             self._set_stats(name, vals)
             normalized = (vals - self._stats[name]["mean"]) / self._stats[name]["std"]
-            targets[name] = torch.as_tensor(normalized, dtype=torch.float32, device=self._device)
+            targets[name] = torch.as_tensor(
+                normalized, dtype=torch.float32, device=self._device
+            )
 
         n_samples = T.shape[0]
         if batch_size is None:
@@ -344,7 +355,7 @@ class PropertySurrogate:
             n_batches = 0
 
             for start in range(0, n_samples, batch_size):
-                idx = perm[start:start + batch_size]
+                idx = perm[start : start + batch_size]
                 T_batch = T[idx]
                 P_batch = P[idx]
                 x = self._normalize_input(T_batch, P_batch)
@@ -369,8 +380,7 @@ class PropertySurrogate:
 
             if verbose and (epoch % 50 == 0 or epoch == epochs - 1):
                 parts = "  ".join(
-                    f"{name}={loss_history[name][-1]:.4e}"
-                    for name in networks
+                    f"{name}={loss_history[name][-1]:.4e}" for name in networks
                 )
                 print(f"Epoch {epoch:4d}/{epochs}:  {parts}")
 
@@ -429,7 +439,9 @@ if __name__ == "__main__":
     )
     print(f"  Data points: {len(data['T'])}")
     print(f"  T range: [{data['T'].min():.1f}, {data['T'].max():.1f}] K")
-    print(f"  P range: [{data['P'].min()/1e6:.2f}, {data['P'].max()/1e6:.2f}] MPa\n")
+    print(
+        f"  P range: [{data['P'].min() / 1e6:.2f}, {data['P'].max() / 1e6:.2f}] MPa\n"
+    )
 
     # Train
     print("Training surrogate (200 epochs)...")
@@ -440,9 +452,9 @@ if __name__ == "__main__":
     import CoolProp.CoolProp as CP
 
     test_points = [
-        (500.0, 20e6),   # typical compressor outlet
-        (700.0, 15e6),   # turbine inlet
-        (350.0, 25e6),   # near pseudo-critical
+        (500.0, 20e6),  # typical compressor outlet
+        (700.0, 15e6),  # turbine inlet
+        (350.0, 25e6),  # near pseudo-critical
     ]
 
     for T_test, P_test in test_points:
@@ -456,18 +468,30 @@ if __name__ == "__main__":
             def rel_err(a, b):
                 return abs(a - b) / (abs(b) + 1e-10) * 100
 
-            print(f"\nT={T_test:.0f} K, P={P_test/1e6:.1f} MPa:")
-            print(f"  density:     surrogate={pred['density']:.2f}  CoolProp={rho_cp:.2f}  "
-                  f"err={rel_err(pred['density'], rho_cp):.1f}%")
-            print(f"  viscosity:   surrogate={pred['viscosity']:.2e}  CoolProp={mu_cp:.2e}  "
-                  f"err={rel_err(pred['viscosity'], mu_cp):.1f}%")
-            print(f"  conductivity: surrogate={pred['conductivity']:.4f}  CoolProp={k_cp:.4f}  "
-                  f"err={rel_err(pred['conductivity'], k_cp):.1f}%")
-            print(f"  specific_heat: surrogate={pred['specific_heat']:.1f}  CoolProp={cp_cp:.1f}  "
-                  f"err={rel_err(pred['specific_heat'], cp_cp):.1f}%")
+            print(f"\nT={T_test:.0f} K, P={P_test / 1e6:.1f} MPa:")
+            print(
+                f"  density:     surrogate={pred['density']:.2f}  CoolProp={rho_cp:.2f}  "
+                f"err={rel_err(pred['density'], rho_cp):.1f}%"
+            )
+            print(
+                f"  viscosity:   surrogate={pred['viscosity']:.2e}  CoolProp={mu_cp:.2e}  "
+                f"err={rel_err(pred['viscosity'], mu_cp):.1f}%"
+            )
+            print(
+                f"  conductivity: surrogate={pred['conductivity']:.4f}  CoolProp={k_cp:.4f}  "
+                f"err={rel_err(pred['conductivity'], k_cp):.1f}%"
+            )
+            print(
+                f"  specific_heat: surrogate={pred['specific_heat']:.1f}  CoolProp={cp_cp:.1f}  "
+                f"err={rel_err(pred['specific_heat'], cp_cp):.1f}%"
+            )
         except Exception as e:
-            print(f"\nT={T_test:.0f} K, P={P_test/1e6:.1f} MPa: CoolProp failed ({e})")
-            print(f"  surrogate: rho={pred['density']:.2f}  mu={pred['viscosity']:.2e}  "
-                  f"k={pred['conductivity']:.4f}  cp={pred['specific_heat']:.1f}")
+            print(
+                f"\nT={T_test:.0f} K, P={P_test / 1e6:.1f} MPa: CoolProp failed ({e})"
+            )
+            print(
+                f"  surrogate: rho={pred['density']:.2f}  mu={pred['viscosity']:.2e}  "
+                f"k={pred['conductivity']:.4f}  cp={pred['specific_heat']:.1f}"
+            )
 
     print("\nDone.")
