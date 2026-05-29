@@ -16,6 +16,15 @@ Key correlations
   differentiable PyTorch expressions.  For production work they should be
   re-fitted or replaced with a differentiable CoolProp wrapper.
 
+Robust optimisation (antithetic variance reduction)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+``robust_optimize_pche()`` extends the deterministic optimiser with antithetic
+Monte Carlo sampling over manufacturing tolerances.  At each optimisation step,
+paired perturbations (δ, -δ) are applied to wall thickness and channel width,
+and the averaged gradient yields designs that perform well under real-world
+manufacturing variation.  The technique is adapted from DiffNano's
+``antithetic_sampler()`` (C5.4 variance-reduced robust gradient).
+
 References
 ~~~~~~~~~~
 - zigzag.py — existing PCHE zigzag channel geometry (STL generation)
@@ -26,7 +35,7 @@ References
 from __future__ import annotations
 
 import math
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, asdict, field
 from typing import Literal
 
 import torch
@@ -525,6 +534,270 @@ def optimize_pche(
 
 
 # ---------------------------------------------------------------------------
+# Robust optimisation with antithetic variance reduction
+# ---------------------------------------------------------------------------
+
+@dataclass
+class RobustConfig:
+    """Configuration for antithetic robust PCHE optimisation.
+
+    Manufacturing tolerances are modelled as additive perturbations δ applied
+    to key geometric dimensions.  The antithetic sampler generates paired
+    (δ, -δ) perturbations, evaluates the objective at both, and averages the
+    resulting gradients.  This reduces gradient variance by approximately a
+    factor of 2 compared to standard Monte Carlo for symmetric perturbation
+    distributions.
+
+    Adapted from DiffNano's ``antithetic_sampler()`` (C5.4 mechanism).
+
+    Parameters
+    ----------
+    n_perturbation_pairs : int
+        Number of antithetic pairs K per gradient step.  Total evaluations
+        per step = 2K + 1 (pairs + nominal).
+    wall_thickness_delta_mm : float
+        Half-range of wall-thickness manufacturing tolerance (mm).
+        Actual perturbation is uniformly sampled in [-δ, +δ].
+    channel_width_delta_mm : float
+        Half-range of channel-width manufacturing tolerance (mm).
+    seed : int or None
+        Random seed for reproducibility.  None means non-deterministic.
+    """
+
+    n_perturbation_pairs: int = 4
+    wall_thickness_delta_mm: float = 0.01   # 10 µm tolerance
+    channel_width_delta_mm: float = 0.02    # 20 µm tolerance
+    seed: int | None = None
+
+
+def robust_optimize_pche(
+    objective: ObjectiveType = "effectiveness",
+    T_hot_K: float = 823.15,
+    T_cold_K: float = 343.15,
+    P_hot_Pa: float = 20.0e6,
+    P_cold_Pa: float = 8.0e6,
+    m_dot_kg_s: float = 0.01,
+    channel_length_m: float = 1.0,
+    n_steps: int = 300,
+    lr: float = 0.02,
+    q_min_W: float = 500.0,
+    combined_alpha: float = 0.7,
+    robust_config: RobustConfig | None = None,
+    verbose: bool = True,
+) -> dict:
+    """Robust PCHE optimisation with antithetic variance reduction.
+
+    Like :func:`optimize_pche` but adds manufacturing-tolerance awareness via
+    antithetic Monte Carlo sampling.  At each optimisation step:
+
+    1. Generate K perturbation pairs for wall thickness and channel width.
+    2. Evaluate the objective at nominal geometry and at each (δ, -δ) pair.
+    3. Average all 2K+1 losses and backpropagate the robust gradient.
+
+    The resulting design is less sensitive to manufacturing variation while
+    remaining close to the deterministic optimum.
+
+    Parameters
+    ----------
+    objective : str
+        Same as :func:`optimize_pche`.
+    T_hot_K .. channel_length_m :
+        Operating conditions, same as :func:`optimize_pche`.
+    n_steps : int
+        Optimisation steps.
+    lr : float
+        Adam learning rate.
+    q_min_W : float
+        Minimum heat transfer constraint (for "min_pressure_drop").
+    combined_alpha : float
+        Effectiveness weight for "combined" objective.
+    robust_config : RobustConfig or None
+        Antithetic sampling configuration.  ``None`` uses defaults.
+    verbose : bool
+        Print progress every 50 steps.
+
+    Returns
+    -------
+    dict with keys:
+        optimized_params : PCHEChannelParams
+        final_metrics : dict
+        history : list[dict]
+        robust_config : RobustConfig
+    """
+    if robust_config is None:
+        robust_config = RobustConfig()
+
+    rng = torch.Generator()
+    if robust_config.seed is not None:
+        rng.manual_seed(robust_config.seed)
+
+    K = robust_config.n_perturbation_pairs
+    dw_max = robust_config.channel_width_delta_mm * 1e-3   # to metres
+    dh_max = robust_config.wall_thickness_delta_mm * 1e-3
+
+    # --- Learnable parameters (log-space, same as deterministic path) ---
+    log_w = torch.tensor(math.log(1.0e-3), dtype=torch.float64, requires_grad=True)
+    log_h = torch.tensor(math.log(0.5e-3), dtype=torch.float64, requires_grad=True)
+    log_pitch = torch.tensor(math.log(2.0e-3), dtype=torch.float64, requires_grad=True)
+    log_fin = torch.tensor(math.log(0.1e-3), dtype=torch.float64, requires_grad=True)
+    log_N = torch.tensor(math.log(10.0), dtype=torch.float64, requires_grad=True)
+
+    optimizer = torch.optim.Adam([log_w, log_h, log_pitch, log_fin, log_N], lr=lr)
+
+    def _build_metrics(
+        w_tensor: torch.Tensor,
+        h_tensor: torch.Tensor,
+        N_int: int,
+    ) -> dict[str, torch.Tensor]:
+        return _heat_transfer_core(
+            w=w_tensor, h=h_tensor, N=N_int,
+            T_hot_K=T_hot_K, T_cold_K=T_cold_K,
+            P_hot_Pa=P_hot_Pa, P_cold_Pa=P_cold_Pa,
+            m_dot_kg_s=m_dot_kg_s, channel_length_m=channel_length_m,
+        )
+
+    def _compute_loss(metrics: dict[str, torch.Tensor]) -> torch.Tensor:
+        eff = metrics["effectiveness"]
+        dp_total = metrics["dp_hot"] + metrics["dp_cold"]
+        q = metrics["q_total"]
+
+        if objective == "effectiveness":
+            return -eff
+        elif objective == "min_pressure_drop":
+            penalty = torch.relu(q_min_W - q) / q_min_W * 10.0
+            return dp_total / 1e5 + penalty
+        elif objective == "combined":
+            dp_norm = dp_total / 1e5
+            return -(combined_alpha * eff - (1.0 - combined_alpha) * dp_norm)
+        else:
+            raise ValueError(f"Unknown objective: {objective!r}")
+
+    history: list[dict] = []
+
+    for step in range(n_steps):
+        optimizer.zero_grad()
+
+        w_tensor = torch.exp(log_w)
+        h_tensor = torch.exp(log_h)
+        N_float = torch.exp(log_N)
+        N_int = int(torch.clamp(N_float, min=2.0, max=200.0).round().item())
+
+        # --- Nominal evaluation ---
+        nominal_metrics = _build_metrics(w_tensor, h_tensor, N_int)
+        nominal_loss = _compute_loss(nominal_metrics)
+
+        # --- Antithetic perturbation pairs ---
+        # Sample K pairs: (dw_i, dh_i) and (-dw_i, -dh_i)
+        # Using uniform distribution scaled by max tolerance
+        perturbed_losses = []
+        for _ in range(K):
+            dw = (2.0 * torch.rand(1, generator=rng, dtype=torch.float64).squeeze() - 1.0) * dw_max
+            dh = (2.0 * torch.rand(1, generator=rng, dtype=torch.float64).squeeze() - 1.0) * dh_max
+
+            # +δ perturbation
+            m_plus = _build_metrics(
+                torch.clamp(w_tensor + dw, min=0.1e-3),
+                torch.clamp(h_tensor + dh, min=0.05e-3),
+                N_int,
+            )
+            loss_plus = _compute_loss(m_plus)
+
+            # -δ perturbation (antithetic pair)
+            m_minus = _build_metrics(
+                torch.clamp(w_tensor - dw, min=0.1e-3),
+                torch.clamp(h_tensor - dh, min=0.05e-3),
+                N_int,
+            )
+            loss_minus = _compute_loss(m_minus)
+
+            perturbed_losses.extend([loss_plus, loss_minus])
+
+        # Robust loss = average of nominal + all perturbed evaluations
+        all_losses = [nominal_loss] + perturbed_losses
+        robust_loss = torch.stack(all_losses).mean()
+
+        robust_loss.backward()
+        optimizer.step()
+
+        # Record history (from nominal evaluation)
+        w_mm = w_tensor.detach().item() * 1e3
+        h_mm = h_tensor.detach().item() * 1e3
+        eff = nominal_metrics["effectiveness"]
+        dp_total = nominal_metrics["dp_hot"] + nominal_metrics["dp_cold"]
+        q = nominal_metrics["q_total"]
+
+        history.append({
+            "step": step,
+            "loss": robust_loss.item(),
+            "nominal_loss": nominal_loss.item(),
+            "effectiveness": eff.item(),
+            "q_total_W": q.item(),
+            "dp_hot_Pa": nominal_metrics["dp_hot"].item(),
+            "dp_cold_Pa": nominal_metrics["dp_cold"].item(),
+            "channel_width_mm": w_mm,
+            "channel_height_mm": h_mm,
+            "num_channels": N_int,
+        })
+
+        if verbose and (step % 50 == 0 or step == n_steps - 1):
+            print(
+                f"  step {step:4d} | robust_loss={robust_loss.item():+.4e} | "
+                f"eff={eff.item():.4f} | q={q.item():.1f} W | "
+                f"dp={dp_total.item():.0f} Pa | "
+                f"w={w_mm:.3f} mm | "
+                f"h={h_mm:.3f} mm | "
+                f"N={N_int}"
+            )
+
+    # --- Final evaluation (same as deterministic path) ---
+    w_m = torch.exp(log_w).detach()
+    h_m = torch.exp(log_h).detach()
+    pitch_m = torch.exp(log_pitch).detach()
+    fin_m = torch.exp(log_fin).detach()
+    N_int = int(torch.clamp(torch.exp(log_N), min=2.0, max=200.0).round().item())
+
+    optimized = PCHEChannelParams(
+        channel_width_mm=round(w_m.item() * 1e3, 4),
+        channel_height_mm=round(h_m.item() * 1e3, 4),
+        pitch_mm=round(pitch_m.item() * 1e3, 4),
+        fin_thickness_mm=round(fin_m.item() * 1e3, 4),
+        num_channels=N_int,
+    )
+
+    final_metrics = differentiable_heat_transfer(
+        params=optimized,
+        T_hot_K=T_hot_K,
+        T_cold_K=T_cold_K,
+        P_hot_Pa=P_hot_Pa,
+        P_cold_Pa=P_cold_Pa,
+        m_dot_kg_s=m_dot_kg_s,
+        channel_length_m=channel_length_m,
+    )
+
+    final_metrics_clean = {
+        k: (v.item() if isinstance(v, torch.Tensor) else v)
+        for k, v in final_metrics.items()
+    }
+
+    if verbose:
+        print("\n=== Robust optimisation complete ===")
+        print(f"  Robust config: K={K} pairs, dw=±{robust_config.channel_width_delta_mm:.3f} mm, "
+              f"dh=±{robust_config.wall_thickness_delta_mm:.3f} mm")
+        print(f"  Optimized params: {asdict(optimized)}")
+        print(f"  Effectiveness : {final_metrics_clean['effectiveness']:.4f}")
+        print(f"  q_total       : {final_metrics_clean['q_total']:.1f} W")
+        print(f"  dp_hot        : {final_metrics_clean['dp_hot']:.0f} Pa")
+        print(f"  dp_cold       : {final_metrics_clean['dp_cold']:.0f} Pa")
+
+    return {
+        "optimized_params": optimized,
+        "final_metrics": final_metrics_clean,
+        "history": history,
+        "robust_config": robust_config,
+    }
+
+
+# ---------------------------------------------------------------------------
 # CLI entry point
 # ---------------------------------------------------------------------------
 
@@ -551,6 +824,18 @@ def main() -> int:
     p.add_argument("--steps", type=int, default=300, help="Optimisation steps")
     p.add_argument("--lr", type=float, default=0.02, help="Learning rate")
     p.add_argument(
+        "--robust",
+        action="store_true",
+        default=False,
+        help="Use antithetic robust optimisation (manufacturing tolerance aware)",
+    )
+    p.add_argument(
+        "--robust-pairs",
+        type=int,
+        default=4,
+        help="Number of antithetic perturbation pairs per step (default: 4)",
+    )
+    p.add_argument(
         "--save-history",
         type=str,
         default=None,
@@ -558,23 +843,38 @@ def main() -> int:
     )
     args = p.parse_args()
 
-    print(f"PCHE optimisation — objective: {args.objective}")
+    print(f"PCHE optimisation — objective: {args.objective}"
+          + (" [ROBUST]" if args.robust else ""))
     print(f"  T_hot={args.T_hot:.1f} K  T_cold={args.T_cold:.1f} K")
     print(f"  P_hot={args.P_hot/1e6:.1f} MPa  P_cold={args.P_cold/1e6:.1f} MPa")
     print(f"  mdot={args.mdot} kg/s  L={args.length} m")
     print()
 
-    result = optimize_pche(
-        objective=args.objective,
-        T_hot_K=args.T_hot,
-        T_cold_K=args.T_cold,
-        P_hot_Pa=args.P_hot,
-        P_cold_Pa=args.P_cold,
-        m_dot_kg_s=args.mdot,
-        channel_length_m=args.length,
-        n_steps=args.steps,
-        lr=args.lr,
-    )
+    if args.robust:
+        result = robust_optimize_pche(
+            objective=args.objective,
+            T_hot_K=args.T_hot,
+            T_cold_K=args.T_cold,
+            P_hot_Pa=args.P_hot,
+            P_cold_Pa=args.P_cold,
+            m_dot_kg_s=args.mdot,
+            channel_length_m=args.length,
+            n_steps=args.steps,
+            lr=args.lr,
+            robust_config=RobustConfig(n_perturbation_pairs=args.robust_pairs),
+        )
+    else:
+        result = optimize_pche(
+            objective=args.objective,
+            T_hot_K=args.T_hot,
+            T_cold_K=args.T_cold,
+            P_hot_Pa=args.P_hot,
+            P_cold_Pa=args.P_cold,
+            m_dot_kg_s=args.mdot,
+            channel_length_m=args.length,
+            n_steps=args.steps,
+            lr=args.lr,
+        )
 
     if args.save_history:
         # Convert history to JSON-serialisable
