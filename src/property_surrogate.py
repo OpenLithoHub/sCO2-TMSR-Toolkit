@@ -278,6 +278,7 @@ class PropertySurrogate:
         epochs: int = 200,
         lr: float = 1e-3,
         batch_size: int | None = None,
+        loss_weights: dict[str, float] | None = None,
         verbose: bool = True,
     ) -> dict[str, list[float]]:
         """Train all 4 property networks on CoolProp data.
@@ -293,6 +294,10 @@ class PropertySurrogate:
             Adam learning rate.
         batch_size : int or None
             Mini-batch size. Defaults to min(1024, n_samples).
+        loss_weights : dict or None
+            Per-property loss weights. Keys should be property names
+            ('density', 'viscosity', 'conductivity', 'specific_heat').
+            Defaults to equal weights if None.
         verbose : bool
             Print training progress every 50 epochs.
 
@@ -348,10 +353,11 @@ class PropertySurrogate:
 
         # Training loop
         loss_history: dict[str, list[float]] = {k: [] for k in networks}
+        w = loss_weights or {}
 
         for epoch in range(epochs):
             perm = torch.randperm(n_samples, device=self._device)
-            epoch_losses = {k: 0.0 for k in networks}
+            epoch_losses = {k: torch.zeros((), device=self._device) for k in networks}
             n_batches = 0
 
             for start in range(0, n_samples, batch_size):
@@ -364,7 +370,7 @@ class PropertySurrogate:
                 for name, net in networks.items():
                     pred = net(x).squeeze(-1)
                     loss = nn.functional.mse_loss(pred, targets[name][idx])
-                    batch_losses[name] = loss
+                    batch_losses[name] = w.get(name, 1.0) * loss
 
                 total_loss = sum(batch_losses.values())
                 optimizer.zero_grad()
@@ -372,11 +378,11 @@ class PropertySurrogate:
                 optimizer.step()
 
                 for name in networks:
-                    epoch_losses[name] += batch_losses[name].item()
+                    epoch_losses[name] = epoch_losses[name] + batch_losses[name].detach()
                 n_batches += 1
 
             for name in networks:
-                loss_history[name].append(epoch_losses[name] / max(1, n_batches))
+                loss_history[name].append((epoch_losses[name] / max(1, n_batches)).item())
 
             if verbose and (epoch % 50 == 0 or epoch == epochs - 1):
                 parts = "  ".join(
