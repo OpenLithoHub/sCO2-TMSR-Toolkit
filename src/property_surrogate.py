@@ -33,10 +33,65 @@ import torch
 import torch.nn as nn
 from torch import Tensor
 
-from diff_surrogate.mlp import MonotoneMLP, PositiveOutputMLP
-
 
 __all__ = ["PropertySurrogate"]
+
+
+# ---------------------------------------------------------------------------
+# Constrained MLP building blocks (inlined from diff-surrogate)
+# ---------------------------------------------------------------------------
+
+
+class _MonotoneLinear(nn.Module):
+    """Linear layer with non-negative weights via softplus parameterization."""
+
+    def __init__(self, in_features: int, out_features: int, bias: bool = True):
+        super().__init__()
+        self.raw_weight = nn.Parameter(torch.empty(out_features, in_features))
+        if bias:
+            self.bias = nn.Parameter(torch.zeros(out_features))
+        else:
+            self.register_parameter("bias", None)
+        nn.init.kaiming_uniform_(self.raw_weight, nonlinearity="relu")
+        self.raw_weight.data.abs_()
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        w = torch.nn.functional.softplus(self.raw_weight)
+        out = x @ w.T
+        if self.bias is not None:
+            out = out + self.bias
+        return out
+
+
+class _MonotoneMLP(nn.Module):
+    """MLP with approximate monotonicity via positive-weight linear layers."""
+
+    def __init__(self, in_features: int, hidden: int = 64, n_layers: int = 3):
+        super().__init__()
+        layers = [_MonotoneLinear(in_features, hidden), nn.ReLU()]
+        for _ in range(n_layers - 2):
+            layers.extend([_MonotoneLinear(hidden, hidden), nn.ReLU()])
+        layers.append(_MonotoneLinear(hidden, 1))
+        self.net = nn.Sequential(*layers)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.net(x)
+
+
+class _PositiveOutputMLP(nn.Module):
+    """MLP that guarantees positive output via softplus activation."""
+
+    def __init__(self, in_features: int, hidden: int = 64, n_layers: int = 3):
+        super().__init__()
+        layers = [nn.Linear(in_features, hidden), nn.ReLU()]
+        for _ in range(n_layers - 2):
+            layers.extend([nn.Linear(hidden, hidden), nn.ReLU()])
+        layers.append(nn.Linear(hidden, 1))
+        self.net = nn.Sequential(*layers)
+        self.positive = nn.Softplus()
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.positive(self.net(x))
 
 # ---------------------------------------------------------------------------
 # CO2 critical-point constants (for normalization reference)
@@ -82,14 +137,14 @@ class PropertySurrogate:
         in_dim = 2  # (T_normalized, P_normalized)
 
         # 4 independent MLPs, one per property (output dim is always 1)
-        self._density_net = MonotoneMLP(in_dim, hidden=hidden_dim).to(self._device)
-        self._viscosity_net = PositiveOutputMLP(in_dim, hidden=hidden_dim).to(
+        self._density_net = _MonotoneMLP(in_dim, hidden=hidden_dim).to(self._device)
+        self._viscosity_net = _PositiveOutputMLP(in_dim, hidden=hidden_dim).to(
             self._device
         )
-        self._conductivity_net = PositiveOutputMLP(in_dim, hidden=hidden_dim).to(
+        self._conductivity_net = _PositiveOutputMLP(in_dim, hidden=hidden_dim).to(
             self._device
         )
-        self._cp_net = PositiveOutputMLP(in_dim, hidden=hidden_dim).to(self._device)
+        self._cp_net = _PositiveOutputMLP(in_dim, hidden=hidden_dim).to(self._device)
 
     # ------------------------------------------------------------------
     # Normalization
